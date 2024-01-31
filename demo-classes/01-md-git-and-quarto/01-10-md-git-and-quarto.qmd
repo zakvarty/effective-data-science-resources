@@ -1,0 +1,190 @@
+---
+title: "Workflows Demo Session"
+subtitle: "Data Science Workflows"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: ../assets/zv-slides-theme.scss #(default / dark / simple)
+    logo: ../assets/zv-logo-192x192.png
+    bibliography: ../assets/refs.bib
+    footer: "Effective Data Science: Workflows - Organising Your Work - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html to web)
+    chalkboard: false # (conflicts with self-contained)
+      #src: drawings.json
+      #theme: whiteboard
+      #read-only: true
+      #buttons: false
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: true
+---
+
+## Session Outline
+
+1. Course Structure, Admin and Expectations
+
+2. Introductions and Definitions
+
+3. Markdown, Git and Quarto
+
+
+# Course Structure, Admin and Expectations 
+
+
+## Weekly Checklists
+
+::::{.columns}
+:::{.column width="30%"}
+
+- Videos (& Notes) 
+- Readings
+  - core, reference, materials of interest
+- Activities
+  - short, core, bonus
+
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="65%"}
+![](images/checklist-screenshot.png)
+:::
+::::
+
+## Weekly Live Sessions {.smaller}
+
+Mix of lecture, lab and group discussion.
+
+::::{.columns}
+:::{.column width="47%"}
+
+- __Mondays:__ Demo Sessions 
+  - Interactive 
+  - Demonstration focused
+  - This week a bit of an exception.
+  
+:::
+:::{.column width="6%"}
+:::
+:::{.column width="47%"}
+
+- __Fridays:__ Live Sessions 
+  - Week in review
+  - Task review
+  - Group discussion
+  - Additional activities
+ 
+:::
+::::
+
+## How to get help?
+
+- [Ed Discussion Forum]()
+
+- __Drop in Sessions:__ Fridays 15:00-17:00, Huxley 711C.
+
+- __Office Hours:__ Mondays 15:00 - 16:00, Huxley 6M20.
+
+## Asking for help reprex 
+
+Self-contained, text file, as small & simple as possible. Consider a Gist.
+
+- Stack Overflow [Post](https://stackoverflow.com/help/minimal-reproducible-example)
+- Hadley Wickham [Gist on Gists](https://gist.github.com/hadley/270442)
+- Sharla Gelfand [Video](https://youtu.be/G5Nm-GpmrLw?si=2u0Qf1xaAcwZnAkN) and [Slides](https://make-a-reprex-please.netlify.app) (excellent, highly recommend)
+
+## Assessments 
+
+### Assessment 1 (30%)
+
+- Similar to last year, reproducible data journalism task.
+- Week 6 (2024-02-12) Mon 09:00 - Fri 13:00
+  
+### Assessment 2 (70%)
+
+- Create a data product of your own devising.
+- Full details released in week 4, due after exam period. (2024-01-29 until 2024-05-15 at 13:00)
+
+
+# Introductions
+
+## About Me
+
+::::{.columns}
+:::{.column width="47%"}
+
+- Maths + Stats + OR
+- Structured / missing data problems
+- Environmental and Industrial applications
+- R, LaTeX, git, Rmarkdown, C++, Python, SQL, Quarto, Julia
+
+:::
+:::{.column width="6%"}
+:::
+:::{.column width="47%"}
+![](images/zv_logos.png)
+:::
+::::
+
+## About You - Menti
+
+Which have you heard of before?
+
+Which do you have experience of using? 
+
+
+## About Data Science - Menti
+
+What is data science to you and how does it relate to statistics?
+
+What do you hope to get out of a data science course?
+
+## What will we cover? 
+
+1. Workflows
+2. Acquiring and Sharing Data
+3. Wrangling and Visualisation
+4. Preparing for production
+5. Data Science Ethics
+
+## Why R? {.smaller}
+
+::::{.columns}
+:::{.column width="50%"}
+### As a first language
+
+- Open-source, high-level,
+- Documentation
+- Generality vs Specificity (Uncertainty built in)
+- Community, beginner friendly material
+
+:::
+:::{.column width="50%"}
+
+### As a second + language 
+
+- Critique and improve your first language 
+- Natural vectorisation and Linear Algebra
+- Easy interface to low-level languages
+- `dplyr` transition to SQL
+
+:::
+::::
+
+# Markdown, Quarto and Git
+
+## Intro to md, quarto and git
+
+Before Friday: 
+
+- Install/Update [R](https://cran.r-project.org/), [RStudio](https://posit.co/download/rstudio-desktop/) and [Quarto](https://quarto.org/).
+
+- Follow [Happy git with R](https://happygitwithr.com/) instructions to link RStudio and Git and Github (§1-14).
+
+- Write a `username/README.md` introducing yourself on your GitHub profile and share in the discussion forum. (See e.g.: [StatsRhian](https://github.com/StatsRhian/StatsRhian),  [nrennie](https://github.com/nrennie/nrennie))
+
+
