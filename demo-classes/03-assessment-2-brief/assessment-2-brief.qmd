@@ -1,0 +1,173 @@
+---
+title: "Assessment 2 Brief"
+subtitle: "MATH 70076 - Data Science"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: assets/eds-slides-theme.scss #(default / dark / simple)
+    logo: assets/EDS-logo.jpg
+    bibliography: assets/refs.bib
+    footer: "Effective Data Science: Assessment 2 Brief - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html)
+    chalkboard: false # (conflicts with self-contained)
+      #src: drawings.json
+      #theme: whiteboard
+      #read-only: true
+      #buttons: false
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: false
+---
+
+# Project Brief 
+
+## What are you expected to do? 
+
+<br><br>
+
+> "In this open-ended assessment you will demonstrate your ability to run a data science project
+from end-to-end. You should scope, develop and present an open-source and reproducible data
+product of your own creation."
+
+
+## What do you mean by "data product"? 
+
+Depending on your strengths and interests your data product might be:
+
+- an in-depth report modelling a complex dataset,
+- a replication study of one or more published analyses,
+- a software package (R package or Python module),
+- a portfolio website demonstrating your data science knowledge and skills,
+- a dashboard or detailed interactive visualisation,
+- another project of your own devising.
+
+## How do I know my idea is suitable?
+
+<br>
+
+> "You are strongly recommended to plan your data product during the teaching weeks of the
+course and to seek feedback on your plan from the course lecturer during the weekly drop-in
+sessions." 
+
+<br>
+
+Come with a plan:
+
+- Elevator pitch
+- Identify early exit points, potential difficulties and extensions
+- Does your project let you demonstrate competence of all learning objectives? 
+
+## What were the learning objectives, again?
+
+<br>
+
+1. Effectively scope and manage a data science project;
+2. Work openly and reproducibly;
+3. Efficiently acquire, manipulate, and present data;
+4. Interpret and explain your work for a variety of stakeholders;
+5. Ensure that your work can be put into production;
+6. Assess the ethical implications of your work as a data scientist.
+
+
+## Changing Plans
+
+:::{.callout-tip title="Can I change my idea and/or get repeated feedback?"}
+Yes, absolutely. 
+
+However, I will only be giving feedback on the scope and scaffolding of each plan not the implementation. This means that there is little benefit to you getting repeat feedback unless you dramatically change the direction of your project partway through the module. 
+:::
+
+:::{.callout-tip title="What would happens if I do not seek feedback (in a timely manner)?"} 
+On top of lectures and office hours, I am offering 10 hours of drop-in time spread over five weeks and so will not be providing additional formative feedback outside of these times.
+:::
+
+# What to submit?
+
+## What to Submit 
+
+<br>
+
+1. Project files `YOURCID-math70076-assessment-2.zip`
+2. Tagged release on GitHub `YOURCID-math70076-assessment-2-summary.pdf`
+3. Reflective summary
+
+## Project files 
+
+<br><br>
+
+> You are required to submit the zipped folder corresponding to your tagged release (as explained
+in class and the accompanying guidelines). This should contain the code, documentation and
+anything else needed to reproduce your data product. This zipped folder should be named
+`YOURCID-math70076-assessment-2.zip`
+
+
+## Tagged Release 
+
+<br><br>
+
+> "Your project summary should link to a tagged commit (release) of a public-facing Github repos-
+itory (as explained in class and the accompanying guidelines). **This tagged commit will be
+considered as your final data product**."
+
+
+## Reflective Summary
+
+In addition to the project files, you should submit a 3 page reflective summary about your project **using the template provided**. 
+
+<br>
+
+Link to tagged release on GitHub.
+
+1. Project Description
+2. Assessment Criteria
+3. Project Reflection
+
+## Reflective Summary - Project Description
+
+A ~250 word project description. An elevator pitch / abstract for your data product. 
+
+- What is your data product?
+- Why should it exist?
+  - What problem does it solve?
+  - What question does it answer?
+  - Why is it interesting?
+- Who is the expected end-user?
+
+## Reflective Summary - Assessment Criteria {.smaller}
+
+<br>
+
+2-3 Bullet points evidencing how each of the assessment criteria are addressed. These we chosen to orthogonalise the learning objectives during marking.
+
+<br>
+
+
+1. __Technical Competence:__ Proficiency in data collection, processing, analysis, and coding.
+2. __User Interface:__ Design, functionality, and usability of the final data product.
+3. __Analysis and Interpretation:__ Depth of analysis, appropriate use of statistical methods, meaningful interpretation.
+4. __Presentation and Communication:__ Clarity, organisation and effectiveness of written and communication.
+5. __Reproducibility:__ Clarity and completeness of documentation for result reproducibility.
+6. __Project Management:__ Considered and effective use of project management and version control systems.
+
+
+## Reflective Summary - Project Reflection
+
+6 bullet points of 1-2 sentences each.
+
+<br>
+
+- 3 things you have learned as part of this process,
+- 2 aspects of the project that you found challenging or would approach differently with hindsight,
+- 1 aspect of the project that you would like to learn more about in the future.
+
+# Walkthrough - tagging a commit 
+
+
+# Questions? 
+
+
