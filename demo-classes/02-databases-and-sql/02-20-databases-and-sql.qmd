@@ -1,0 +1,523 @@
+---
+title: "Databases and SQL"
+subtitle: "Effective Data Science: Acquiring and Sharing Data"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: ../assets/zv-slides-theme.scss #(default / dark / simple)
+    logo: ../assets/zv-logo-192x192.png
+    bibliography: ../assets/refs.bib
+    footer: "Effective Data Science: Acquiring and Sharing Data - SQL - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html to web)
+    chalkboard: false # (conflicts with self-contained)
+      #src: drawings.json
+      #theme: whiteboard
+      #read-only: true
+      #buttons: false
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: true
+    highlight-style: pygments
+---
+
+## What is a Database - concept
+
+- Collection of data frames (tables)
+- Named columns of same type (fields)
+- Analogy: sheets in a spreadsheet
+- Schema shows how these are related
+
+## CSV vs table vs data.frame
+
+- Stored on disk
+- Indexing
+- Optimised for row operations (records)
+- Designed for relational data
+
+
+## What is SQL? 
+
+**S**tructured **Q**uery **L**anguage
+
+- A way to ask questions of a database
+- SQL is the ISO standard for doing so.
+
+
+. . . 
+
+
+- Many dialects / flavours depending on DBMS
+  - `SELECT`, `UPDATE`, `DELETE`, `INSERT`, `WHERE`  
+  - DBMS specific extensions
+ 
+## Case Conventions
+
+SQL is case instenstive. Conventions:
+
+- `ALLCAPS` for SQL verbs
+- `Title Case` for table names
+- `lower case` for field names
+
+## What is a Database - reality {.smaller}
+
+::::{.columns}
+:::{.column width="50%"}
+Data base management systems
+
+- **Client-server DBMS:**
+  - Central server, usually within organisation.
+  - PostgeSQL, MariaDB, SQL Server, Oracle.
+- **Cloud DBMS**
+  - Remote Server, storage as a service.
+  - Snowflake, RedShift, BigQuery
+
+:::
+:::{.column width="50%"}
+
+- **In-process DBMS**
+  - Local machine
+  - SQLite, duckdb
+
+
+<br>
+
+**Q:** When would you prefer each of these? 
+
+:::
+::::
+
+## Installing SQLite 
+
+Mac OS
+```{.bash}
+# Check installed
+sqlite3 --version
+```
+
+Linux
+```{.bash}
+#| eval: false
+# Check installed
+which sqlite3
+# install if needed
+sudo apt install sqlite3
+```
+
+<br>
+
+Windows - use [git for Windows](https://gitforwindows.org/) to get unix-like command line.
+
+# Walkthrough 
+
+## Antarctic Explorers 
+
+::: {.nonincremental}
+- Based on Software Carpentry [tutorial](https://swcarpentry.github.io/sql-novice-survey/), dowload `survey.db` from blackboard.
+:::
+
+```{.bash}
+# Move to where the database is stored locally
+cd Work/teaching/00-effective-data-science/effective-data-science-resources/demo-classes/02-sql 
+
+# Open interactive SQLite session
+sqlite3 survey.db
+
+# Close interactive session
+.quit
+.exit
+
+#Get help 
+.help
+```
+
+## Learning about a database 
+
+```sql
+-- List all tables
+.tables
+
+-- Column summaries
+.schema
+```
+
+<br>
+
+```sql
+-- Get an entire table - BEWARE!
+SELECT * FROM Person;
+
+-- Get a single field 
+SELECT id FROM Person;
+```
+
+## Pretty Output 
+
+Our command line output could look better:
+
+```sql
+# left align output by column
+.mode column
+
+# show field headers
+.header on
+```
+
+<br>
+
+Try again
+
+```sql
+SELECT * FROM Person
+```
+
+
+## Selecting Fields
+
+Selecting a single field from a table
+
+```sql
+-- Get a single field 
+SELECT id FROM Person;
+```
+
+<br>
+
+Selecting multiple fields from a table
+
+```sql
+-- Get multiple fields 
+SELECT id, id FROM Person;               -- Beware!
+
+-- Records can change between repreated queries
+SELECT id, Personal, Family FROM Person;
+SELECT id, Personal, Family FROM Person; -- Beware!
+```
+
+
+## Working with factors
+
+Distinct levels 
+
+```{.sql}
+SELECT DISTINCT quant FROM Survey;
+```
+
+<br>
+
+
+Distinct pairs or touples
+
+```sql
+SELECT DISTINCT quant, person FROM Survey;
+```
+
+## Ordering 
+
+Records are not in a fixed order and may change between queries 
+
+```sql
+# ascending order by default
+SELECT * FROM Person ORDER BY id;
+SELECT * FROM Person ORDER BY id ASC; -- for emphasis
+
+# switch to descending
+SELECT * FROM Person ORDER BY id DESC;
+```
+
+<br>
+
+**Q:** What do you expect to see? 
+
+```SQL
+SELECT taken, person, quant FROM Survey ORDER BY taken ASC, person DESC;
+```
+
+## Filtering 
+
+Filter with `WHERE`, combine logical conditons (`=`, `>`, `<`, ...) with `AND` and `OR`. 
+
+```sql
+SELECT person, reading FROM Survey WHERE Person = 'lake';
+SELECT person, reading FROM Survey WHERE Person = 'lake' OR Person = 'roe';
+SELECT person, reading FROM Survey WHERE Person IN ('lake', 'roe');
+```
+
+<br>
+
+```sql
+-- Be explicit about order of operations
+SELECT person, reading FROM Survey 
+    WHERE (person = 'lake' OR person = 'roe') AND reading > 10;
+
+SELECT person, reaing FROM Survey 
+    WHERE person = 'lake' OR (person = 'roe' AND reading > 10);
+```
+
+**Q:** Which matches the case with no parentheses?
+
+
+## Wildcards
+
+`LIKE` and the `%` wildcard. 
+
+Combined, these behave like `*` in regex.
+
+<br>
+
+```sql
+SELECT * FROM Visited WHERE site LIKE 'DR%';
+```
+
+<br>
+
+**Q**: Is the following true?
+
+```sql
+ 'data science' LIKE '%a%'
+```
+
+## Calculating
+
+```sql
+-- Horrible field title
+SELECT 1.05 * reading FROM Survey WHERE quant = 'rad';
+
+-- Nicer field title
+SELECT 1.05 * reading as radiation FROM Survey WHERE quant = 'rad';
+```
+
+
+## Joining Tables (Basics)
+
+Join makes a cross product with 3 * 8 = 24 entries
+
+```sql
+SELECT * FROM Site JOIN Visited;
+```
+
+<br>
+
+Tell SQL how to match the tables by specifying a primary key and secondary key
+
+<br> 
+
+```sql
+SELECT
+  *
+FROM
+  Site
+  JOIN Visited ON Site.name = Visited.site;
+```
+
+## Join and Select 
+
+Notice the `Table.field` synax, this aviods issues with duplicate column names.
+
+```sql
+SELECT
+  Site.lat,
+  Site.long,
+  Visited.dated
+FROM
+  Site
+  JOIN Visited ON Site.name = Visited.site;
+```
+
+## Joins can become more complicated 
+
+```sql
+SELECT
+  Site.lat,
+  Site.long,
+  Visited.dated,
+  Survey.quant,
+  Survey.reading
+FROM 
+  Site
+  JOIN Visited
+  JOIN Survey ON Site.name = Visited.site
+  AND Visited.id = Survey.taken
+  AND Visited.dated IS NOT NULL;
+```
+
+## Learning More
+
+- Other types of join: inner, left, right
+- Lots of practise with `{dplyr}` 
+- Write your queries in R using `{dbplyr}`
+- Short [tutorial](https://datacarpentry.org/2015-03-09-ISI-CODATA/lessons/sql/sql.html)
+- [SQL for Data Analysis](https://library-search.imperial.ac.uk/permalink/44IMP_INST/mek6kh/alma991000615715801591) book
+
+## This Week
+
+[Acquiring and Sharing Data Checklist](https://eds-notes.zakvarty.com/210-data-checklist)
+<!--
+## Session Outline
+
+1. Course Structure, Admin and Expectations
+
+2. Introductions and Definitions
+
+3. Markdown, Git and Quarto
+
+
+# Course Structure, Admin and Expectations 
+
+
+## Weekly Checklists
+
+::::{.columns}
+:::{.column width="30%"}
+
+- Videos (& Notes) 
+- Readings
+  - core, reference, materials of interest
+- Activities
+  - short, core, bonus
+
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="65%"}
+![](images/checklist-screenshot.png)
+:::
+::::
+
+## Weekly Live Sessions {.smaller}
+
+Mix of lecture, lab and group discussion.
+
+::::{.columns}
+:::{.column width="47%"}
+
+- __Mondays:__ Demo Sessions 
+  - Interactive 
+  - Demonstration focused
+  - This week a bit of an exception.
+  
+:::
+:::{.column width="6%"}
+:::
+:::{.column width="47%"}
+
+- __Fridays:__ Live Sessions 
+  - Week in review
+  - Task review
+  - Group discussion
+  - Additional activities
+ 
+:::
+::::
+
+## How to get help?
+
+- [Ed Discussion Forum]()
+
+- __Drop in Sessions:__ Fridays 15:00-17:00, Huxley 711C.
+
+- __Office Hours:__ Mondays 15:00 - 16:00, Huxley 6M20.
+
+## Asking for help reprex 
+
+Self-contained, text file, as small & simple as possible. Consider a Gist.
+
+- Stack Overflow [Post](https://stackoverflow.com/help/minimal-reproducible-example)
+- Hadley Wickham [Gist on Gists](https://gist.github.com/hadley/270442)
+- Sharla Gelfand [Video](https://youtu.be/G5Nm-GpmrLw?si=2u0Qf1xaAcwZnAkN) and [Slides](https://make-a-reprex-please.netlify.app) (excellent, highly recommend)
+
+## Assessments 
+
+### Assessment 1 (30%)
+
+- Similar to last year, reproducible data journalism task.
+- Week 6 (2024-02-12) Mon 09:00 - Fri 13:00
+  
+### Assessment 2 (70%)
+
+- Create a data product of your own devising.
+- Full details released in week 4, due after exam period. (2024-01-29 until 2024-05-15 at 13:00)
+
+
+# Introductions
+
+## About Me
+
+::::{.columns}
+:::{.column width="47%"}
+
+- Maths + Stats + OR
+- Structured / missing data problems
+- Environmental and Industrial applications
+- R, LaTeX, git, Rmarkdown, C++, Python, SQL, Quarto, Julia
+
+:::
+:::{.column width="6%"}
+:::
+:::{.column width="47%"}
+![](images/zv_logos.png)
+:::
+::::
+
+## About You - Menti
+
+Which have you heard of before?
+
+Which do you have experience of using? 
+
+
+## About Data Science - Menti
+
+What is data science to you and how does it relate to statistics?
+
+What do you hope to get out of a data science course?
+
+## What will we cover? 
+
+1. Workflows
+2. Acquiring and Sharing Data
+3. Wrangling and Visualisation
+4. Preparing for production
+5. Data Science Ethics
+
+## Why R? {.smaller}
+
+::::{.columns}
+:::{.column width="50%"}
+### As a first language
+
+- Open-source, high-level,
+- Documentation
+- Generality vs Specificity (Uncertainty built in)
+- Community, beginner friendly material
+
+:::
+:::{.column width="50%"}
+
+### As a second + language 
+
+- Critique and improve your first language 
+- Natural vectorisation and Linear Algebra
+- Easy interface to low-level languages
+- `dplyr` transition to SQL
+
+:::
+::::
+
+# Markdown, Quarto and Git
+
+## Intro to md, quarto and git
+
+Before Friday: 
+
+- Install/Update [R](https://cran.r-project.org/), [RStudio](https://posit.co/download/rstudio-desktop/) and [Quarto](https://quarto.org/).
+
+- Follow [Happy git with R](https://happygitwithr.com/) instructions to link RStudio and Git and Github (§1-14).
+
+- Write a `username/README.md` introducing yourself on your GitHub profile and share in the discussion forum. (See e.g.: [StatsRhian](https://github.com/StatsRhian/StatsRhian),  [nrennie](https://github.com/nrennie/nrennie))
+
+-->
