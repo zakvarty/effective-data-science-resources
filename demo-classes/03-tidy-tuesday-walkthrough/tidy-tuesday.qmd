@@ -1,0 +1,1140 @@
+---
+title: "ggplot2 demo: Tidy Tuesday "
+subtitle: "MATH 70076 - Data Science"
+author: Dr Zak Varty
+format:
+  revealjs:
+    theme: assets/eds-slides-theme.scss #(default / dark / simple)
+    logo: assets/EDS-logo.jpg
+    bibliography: assets/refs.bib
+    footer: "Effective Data Science: EDAV - ggplot2 demo - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html)
+    chalkboard: false # (conflicts with self-contained)
+      #src: drawings.json
+      #theme: whiteboard
+      #read-only: true
+      #buttons: false
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: false
+---
+---
+
+## Aim 
+
+- Build skills with `{ggplot2}`
+- Show iterative development of a data visualisation 
+
+<br>
+
+### How will we do it?
+
+- [Tidy Tuesday](https://www.tidytuesday.com/), a weekly community activity challenge.
+- Explore, visualise, model or summarise a new data set each week. 
+
+- Use the [2024-01-23 dataset](https://github.com/rfordatascience/tidytuesday/tree/master/data/2024/2024-01-23). 
+
+## Educational Attainment of Young People in English Towns 
+
+::::{.columns}
+:::{.column width="50%"}
+The [dataset](https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/educationandchildcare/datasets/educationalattainmentofyoungpeopleinenglishtownsdata/200708201819/youngpeoplesattainmentintownsreferencetable1.xlsx) comes from [The UK Office for National Statistics](https://www.ons.gov.uk/).
+
+It was explored in the July 2023 article ["Why do children and young people in smaller towns do better academically than those in larger towns?"](https://www.ons.gov.uk/peoplepopulationandcommunity/educationandchildcare/articles/whydochildrenandyoungpeopleinsmallertownsdobetteracademicallythanthoseinlargertowns/2023-07-25).
+
+<br>
+
+Reproduce this plot from the article.
+:::
+:::{.column width="50%"}
+```{r screenshot}
+#| echo: false 
+#| out-width: 80%
+#| fig-align: center
+knitr::include_graphics("images/screenshot.png")
+```
+:::
+::::
+
+## Template R script
+
+<br>
+
+```{r template}
+#| echo: true
+#| eval: false
+#| filename: "2024-01-23_tidy-tuesday.R"
+# Tidy Tuesday 2024-01-23 English Education
+
+# Load required packages -------------------------------------------------------
+
+# Load data --------------------------------------------------------------------
+
+# Data wrangling ---------------------------------------------------------------
+
+# Create plot ------------------------------------------------------------------
+
+# Save plot --------------------------------------------------------------------
+
+# End of file
+``` 
+
+# Planning 
+
+## Planning
+
+<br>
+
+Before we get started coding it is a good idea to take some time with a pen and paper to work out exactly what data we need to construct this plot and what form we need it in.
+
+<br>
+
+This stage would usually come after some exploration of the data and a rough hand-sketch of the plot we want to make. Our job is a bit simpler in this case, because we are reconstructing an existing plot. This means we don't have to make as many decisions of our own, instead we just have to pay careful attention to the choices made in the original plot.
+
+```{r countdown}
+countdown::countdown(3)
+```
+
+
+## `town_scores`
+
+<!-- To construct the main body of the plot need a data frame with the mean attainment scores for each combination of region and income. -->
+
+```{r town-scores-sketch}
+#| layout-ncol: 2
+knitr::include_graphics("images/town-scores-sketch.png")
+knitr::include_graphics("images/screenshot.png")
+```
+
+## `label_df` and `arrow_df`
+
+```{r labels-and-arrows-sketch}
+#| layout-ncol: 2
+knitr::include_graphics("images/labels-and-arrows-sketch.png")
+knitr::include_graphics("images/screenshot.png")
+```
+
+## Strings and Colours 
+
+```{r strings-and-colours-sketch}
+#| layout-ncol: 2
+knitr::include_graphics("images/lists-sketch.png")
+knitr::include_graphics("images/screenshot.png")
+```
+
+
+# Data Wrangling 
+
+## Load Required Packages and Data
+
+<br>
+
+```{r load-packages}
+#| filename: "2024-01-23_tidy-tuesday.R # Load required packages ----"
+#| echo: true
+#| eval: true
+# Load required packages -------------------------------------------------------
+library(readr)              # loading data
+library(dplyr)              # data frame manipulation
+library(stringr)            # character string manipulation
+``` 
+
+<br>
+<br>
+
+```{r load-data}
+#| filename: "2024-01-23_tidy-tuesday.R # Load data ----"
+#| echo: true
+#| eval: true
+# Load data --------------------------------------------------------------------
+url <- 'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-01-23/english_education.csv'
+education <- readr::read_csv(file = url)
+``` 
+
+
+## Making `town_scores`
+
+Take a look at the structure of the data we have loaded and try to construct `town_scores`.
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+colnames(education)
+```
+
+## What do these columns mean? 
+
+<br>
+
+Referring to the [data dictionary](https://github.com/rfordatascience/tidytuesday/tree/master/data/2024/2024-01-23#data-dictionary), it seems that the relevant columns are likely to be:
+
+- `rgn11nm` (character) the region name as recorded in 2011;
+- `education_score` (numeric) the town/city education score based on attainment levels of the 2012/13 Key stage 4 cohort;
+- `income_flag` (character) a variable used to describe towns as lower income deprivation, mid income deprivation or higher income deprivation.
+
+## Extract Rows on Towns
+
+Our first step is to consider only the rows which correspond to towns. We can do this using the `income_flag`.
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+unique(education$income_flag)
+```
+
+## Extract Rows on Towns
+
+We filter to only rows there the `income_flag` contains the string `"town"`.
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+education %>% 
+  filter(str_detect(income_flag, pattern = "town"))
+```
+
+
+## Tidying up 
+
+We next provide more meaningful names, format the columns we will keep and drop all irrelevant columns. 
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| code-line-numbers: "3"
+education %>% 
+  filter(str_detect(income_flag, pattern = "town")) %>% 
+  mutate(region = as.factor(rgn11nm), income = as.factor(income_flag)) %>%
+  select(region, income, education_score)
+```
+
+## Calculate Group Summaries
+
+To calculate our average education score in each `region`-`income` combination, we have to group our observations by both of these factors.
+
+We can then calculate a the required summary statistic for each group. 
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| output-location: slide
+#| code-line-numbers: "5-6"
+education %>% 
+  filter(str_detect(income_flag, pattern = "town")) %>% 
+  mutate(region = as.factor(rgn11nm), income = as.factor(income_flag)) %>%
+  select(region, income, education_score) %>% 
+  group_by(region, income) %>% 
+  summarise(mean_education_score = mean(education_score))
+```
+
+## Ungrouping 
+
+> `summarise()` has grouped output by 'region'. You can override using the `.groups` argument.
+
+This warning reminds us that this `summarise()` call returns a tibble that is still grouped by `region`. To avoid any mistakes later, let's undo this grouping.
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| output: false
+#| code-line-numbers: "7"
+education %>% 
+  filter(str_detect(income_flag, pattern = "town")) %>% 
+  mutate(region = as.factor(rgn11nm), income = as.factor(income_flag)) %>%
+  select(region, income, education_score) %>% 
+  group_by(region, income) %>% 
+  summarise(mean_education_score = mean(education_score)) %>% 
+  ungroup()
+```
+
+## Storing `town_scores`
+
+<br>
+<br>
+
+```{r}
+#| filename: "2024-01-23_tidy-tuesday.R # Data Wrangling ----"
+#| echo: true
+#| eval: true
+town_scores <- education %>% 
+  filter(str_detect(income_flag, pattern = "town")) %>% 
+  mutate(region = as.factor(rgn11nm), income = as.factor(income_flag)) %>%
+  select(region, income, education_score) %>% 
+  group_by(region, income) %>% 
+  summarise(mean_education_score = mean(education_score)) %>% 
+  ungroup()
+```
+
+
+## Making `label_df`
+
+The first column in `labels_df` should be the mean education scores for the North West region. We can easily extract these from `town_scores`, which we just created.
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+town_scores %>% 
+  filter(region == "North West") %>% 
+  select(mean_education_score)
+```
+
+The issue here is that we still have a tibble. If we want to extract a column as a numeric vector then we can use `pull` instead of `select`. 
+
+## Getting `NW_scores` {.smaller}
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+NW_scores <- town_scores %>% 
+  filter(region == "North West") %>% 
+  pull(mean_education_score)
+
+NW_scores
+```
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+label_df <- tibble(
+  horizontal = NW_scores,
+  vertical = rep(9, 3),
+  string = c("Higher income deprivation", "Mid", "Lower")
+)
+
+label_df
+```
+
+## Making `arrow_df`
+
+We can similarly construct `arrow_df`. 
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+arrow_df <- tibble(
+  horizontal = NW_scores,
+  upper = rep(8.75, 3),
+  lower = rep(8.25, 3)
+)
+
+arrow_df
+```
+
+## Adding to script {.smaller}
+
+<br>
+
+```{r}
+#| filename: "2024-01-23_tidy-tuesday.R # Data Wrangling ----"
+#| echo: true
+#| eval: true
+#| code-line-numbers: "9-24"
+town_scores <- education %>% 
+  filter(str_detect(income_flag, pattern = "town")) %>% 
+  mutate(region = as.factor(rgn11nm), income = as.factor(income_flag)) %>%
+  select(region, income, education_score) %>% 
+  group_by(region, income) %>% 
+  summarise(mean_education_score = mean(education_score)) %>% 
+  ungroup()
+
+NW_scores <- town_scores %>% 
+  filter(region == "North West") %>% 
+  pull(mean_education_score)
+
+label_df <- tibble(
+  horizontal = NW_scores,
+  vertical = rep(9, 3),
+  string = c("Higher income deprivation", "Lower", "Mid")
+)
+
+arrow_df <- tibble(
+  horizontal = NW_scores,
+  upper = rep(8.75, 3),
+  lower = rep(8.25, 3)
+)
+```
+
+## Strings and Colour Palette {.smaller}
+
+The final step in our data preparations is to create some variables that we can use later to access the colours and texts strings that we will use when creating the plot. 
+
+<br>
+
+```{r}
+#| filename: "2024-01-23_tidy-tuesday.R # Data Wrangling ----"
+#| echo: true
+#| eval: true
+# Note added line breaks (\n) to match original formatting
+strings <- list(
+  title = "Towns in the North West have the highest attainment scores at
+  all  \n income deprivation levels",
+  sub = "\n  \n  Average educational attainment score for towns, by region
+  and income  \n  deprivation level, England",
+  cap = "Source: Office for National Statistics analysis using Longitudinal
+  Education Outcomes (LEO)  \n from the Department for Education (DfE) and Index
+  of Multiple Deprivation 2019 from the  \n Department for Levelling Up, Housing
+  and Communities (DLUHC)"
+)
+
+ONS_palette <- list(
+  red = "#7c265a",
+  blue = "#315f91",
+  light_grey = "#d3d3d3",
+  dark_grey = "#8A8A8A",
+  black = "#222222",
+  white = "#ffffff")
+```
+
+# Plotting 
+
+## Loading `{ggplot2}`
+
+We will use `{ggplot2}` to create our visualisation, so we have to add this to our library calls.
+
+```{r}
+#| filename: "2024-01-23_tidy-tuesday.R # Load Packages ----"
+#| echo: true
+#| eval: true
+library(ggplot2)
+```
+
+
+## Basic Plot
+
+Using `geom_point()` create a scatter plot. We want to use `town_scores`  as the source of our data, mapping: the `mean_score` column to the x location of each point, the `region` column to the y location of each point, the `income` column to determine the colour of each point. 
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| fig-align: center
+#| output-location: column
+ggplot() + 
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      colour = income)
+  )
+```
+
+## Fix Plotting Character 
+
+Switch to solid circles, [plotting character](http://www.sthda.com/english/wiki/r-plot-pch-symbols-the-different-point-shapes-available-in-r) 21. 
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "8" 
+ggplot() + 
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      colour = income),
+    shape = 21
+  )
+```
+
+## Use `fill` for hollow shapes
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "7" 
+ggplot() + 
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      fill = income),
+    shape = 21
+  )
+```
+
+## Add vertical line at x = 0
+
+We can add another layer to our plot, to thicken the vertical line $x=0$.
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "9-12" 
+ggplot() + 
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      fill = income),
+    shape = 21) + 
+  geom_vline(
+    xintercept = 0,
+    linewidth = 0.8,
+    colour = ONS_palette$dark_grey)
+```
+
+## Remove grey background with `theme_minimal()` {.smaller}
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "16" 
+# Structure
+p <- ggplot() + 
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      fill = income),
+    shape = 21) + 
+  geom_vline(
+    xintercept = 0,
+    linewidth = 0.8,
+    colour = ONS_palette$dark_grey) 
+
+# Cosmetics
+p + theme_minimal()
+```
+
+
+## Remove Legend and Axis Labels 
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "3-7" 
+p + 
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+  
+```
+
+
+## Fix grid lines {.smaller}
+
+We can use `theme()` to correct other cosmetic problems, such as removing the minor vertical grid lines and making the horizontal grid lines dashed. 
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "7-8" 
+p + 
+  theme_minimal() + 
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(linetype = 2)
+  )
+```
+
+## Adjust plotting area with `coord_cartesian()` {.smaller}
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "3" 
+# Structure
+p <- p + 
+  coord_cartesian(xlim = c(-4, 6), ylim = c(1.25,8.75))
+
+# Cosmetics
+p + 
+  theme_minimal() + 
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(linetype = 2)
+  )
+```
+
+<br>
+
+This has fixed one problem but created another. Now our grid lines extend up too far. Let's replace them with line segments using `geom_linerange()`. 
+
+<!-- Now the plotting area is correct but the vertical grid lines extend too high. -->
+
+## Remove vertical grid lines {.smaller}
+
+Remove the gridlines using `theme()` and define lines we want to draw.
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "7" 
+p + 
+  theme_minimal() + 
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(linetype = 2)
+  )
+
+vertical_grid_df <- tibble(
+  x = seq(-4, 6, by = 2),
+  ymin = rep(0, length(x)),
+  ymax = rep(8.25, length(x))
+)
+```
+  
+## Add a custom vertical grid {.smaller}
+
+Add those lines that we just defined. Beautiful!
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "14-18" 
+p <- ggplot() + 
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      fill = income),
+    shape = 21,
+  ) + 
+  geom_linerange(
+    mapping = aes(x = 0, ymin = 0.25, ymax = 8.25),
+    colour = ONS_palette$dark_grey,
+    linewidth = 0.8) +
+  geom_linerange(
+    data = vertical_grid_df,
+    mapping = aes(x = x, ymin = ymin, ymax = ymax),
+    colour = ONS_palette$light_grey,
+    linewidth = 0.3) +
+  coord_cartesian(xlim = c(-4, 6), ylim = c(1.25,8.75))
+
+p +   
+  theme_minimal() + 
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(linetype = 2)
+  )
+```
+
+
+## Adding Strings
+
+Now let's add text to the plot. That looks disgusting. 
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "2-4" 
+p <- p +
+  labs(title = strings$title,
+       subtitle = strings$sub,
+       caption = strings$cap)
+
+p +   
+  theme_minimal() + 
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(linetype = 2)
+  )
+```
+
+
+## Left align and resize using `{ggtext}` {.smaller}
+
+```{r}
+#| echo: true
+library(ggtext) # for element_markdown()
+```
+
+<br>
+
+```{r}
+#| filename: "Console"
+#| echo: true
+#| eval: true
+#| out-width: 100%
+#| output-location: column
+#| fig-align: center
+#| code-line-numbers: "9-24" 
+theme_ONS <- theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(linetype = 2),
+    plot.title = element_markdown(
+      size = 15,
+      hjust = 0,
+      face = "bold",
+      margin = margin(0,0,15,0)),
+    plot.title.position = "plot",
+    plot.subtitle = element_markdown(
+      size = 14,
+      hjust = 0,
+      margin = margin(0,0,15,0)),
+    plot.caption = element_markdown(
+      size = 12,
+      hjust = 0,
+      color = ONS_palette$dark_grey),
+    plot.caption.position = "plot")
+
+p +   
+  theme_minimal() + 
+  theme_ONS
+```
+
+## Putting places in the correct order {.smaller}
+
+To get the locations arranged with Northern places at the top and Southern places at the bottom, we need to re-level the `location` factor in `town_scores`. 
+
+```{r}
+#| filename: "2024-01-23_tidy-tuesday.R # Data Wrangling ----"
+#| echo: true
+#| eval: true
+#| output-location: column
+#| code-line-numbers: "1-12"
+library(forcats)
+
+town_scores <- town_scores %>% 
+mutate(region = fct_relevel(region,
+  "South West",
+  "East of England",
+  "South East",
+  "East Midlands",
+  "West Midlands",
+  "Yorkshire and The Humber",
+  "North East",
+  "North West"))
+
+p <- ggplot() + 
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      fill = income),
+    shape = 21) + 
+  geom_linerange(
+    mapping = aes(x = 0, ymin = 0.25, ymax = 8.25),
+    colour = ONS_palette$dark_grey,
+    linewidth = 0.8) +
+  geom_linerange(
+    data = vertical_grid_df,
+    mapping = aes(x = x, ymin = ymin, ymax = ymax),
+    colour = ONS_palette$light_grey,
+    linewidth = 0.3) +
+  coord_cartesian(xlim = c(-4, 6), ylim = c(1.25,8.75)) + 
+  labs(title = strings$title, subtitle = strings$sub, caption = strings$cap)
+
+p + theme_minimal() + theme_ONS
+```
+
+## Split Yourkshire and The Humber {.smaller}
+
+Add a line break into the third level of the `location` factor. 
+
+```{r}
+#| filename: "2024-01-23_tidy-tuesday.R # Data Wrangling ----"
+#| echo: true
+#| eval: true
+#| output-location: column
+#| code-line-numbers: "1-3"
+town_scores <- town_scores %>% 
+  mutate(region = fct_recode(region,
+  "Yorkshire and\n The Humber" = "Yorkshire and The Humber"))
+
+p <- ggplot() + 
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      fill = income),
+    shape = 21,
+  ) + 
+  geom_linerange(
+    mapping = aes(x = 0, ymin = 0.25, ymax = 8.25),
+    colour = ONS_palette$dark_grey,
+    linewidth = 0.8) +
+  geom_linerange(
+    data = vertical_grid_df,
+    mapping = aes(x = x, ymin = ymin, ymax = ymax),
+    colour = ONS_palette$light_grey,
+    linewidth = 0.3) +
+  coord_cartesian(xlim = c(-4, 6), ylim = c(1.25,8.75)) + 
+  labs(title = strings$title, subtitle = strings$sub, caption = strings$cap)
+
+p + theme_minimal() + theme_ONS
+```
+
+## Match the ONS colour scheme {.smaller}
+
+Make the plotting characters larger and switch to a custom ONS colour scheme.
+
+<br>
+
+```{r}
+#| filename: "2024-01-23_tidy-tuesday.R # Data Wrangling ----"
+#| echo: true
+#| eval: true
+#| output-location: column
+#| code-line-numbers: "10,21"
+p <- ggplot() + 
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      fill = income),
+    shape = 21,
+    size = 4) + 
+  geom_linerange(
+    mapping = aes(x = 0, ymin = 0.25, ymax = 8.25),
+    colour = ONS_palette$dark_grey,
+    linewidth = 0.8) +
+  geom_linerange(
+    data = vertical_grid_df,
+    mapping = aes(x = x, ymin = ymin, ymax = ymax),
+    colour = ONS_palette$light_grey,
+    linewidth = 0.3) +
+  coord_cartesian(xlim = c(-4, 6), ylim = c(1.25,8.75)) + 
+  labs(title = strings$title, subtitle = strings$sub, caption = strings$cap) + 
+  scale_fill_manual(values = unname(ONS_palette))
+
+p + theme_minimal() + theme_ONS
+```
+
+## Add Labels 
+
+We can add a layer of text annotations to our plot using `geom_text()`. 
+
+```{r}
+#| filename: "2024-01-23_tidy-tuesday.R # Data Wrangling ----"
+#| echo: true
+#| eval: true
+#| output-location: column
+p + 
+  geom_text(
+    data = label_df,
+    mapping = aes(
+      x = horizontal,
+      y = vertical, 
+      label = string),
+    color = ONS_palette$black) +
+  theme_minimal() +
+  theme_ONS
+```
+
+
+## Add Arrows {.smaller}
+
+Similarly, `geom_segment()` can be adapted to draw arrows. To avoid these overlapping with our text, we also have to nudge our labels up a little bit. 
+
+```{r}
+#| filename: "2024-01-23_tidy-tuesday.R # Data Wrangling ----"
+#| echo: true
+#| eval: true
+#| output-location: column
+#| code-line-numbers: "10-18"
+p <- p + 
+  geom_text(
+    data = label_df,
+    mapping = aes(
+      x = horizontal, 
+      y = vertical, 
+      label = string),
+    color = ONS_palette$black) +
+  geom_segment(
+    data = arrow_df,
+    mapping = aes(
+      x = horizontal, 
+      xend = horizontal,
+      y = upper,
+      yend = lower),
+    arrow = arrow(length = unit(0.1, "inches"))
+    )
+
+p + theme_minimal() + theme_ONS
+```
+
+## Pulling it all together {.smaller}
+
+<br>
+
+```{r}
+#| echo: true 
+#| eval: false
+#| filename: "2024-01-23_tidy-tuesday.R"
+# Tidy Tuesday 2024-01-23 English Education
+
+# Load required packages -------------------------------------------------------
+library(readr)                  # loading data
+library(dplyr)                  # data frame manipulation
+library(stringr)                # character string manipulation
+library(ggplot2)                # plotting
+library(ggtext)                 # element_markdown for subtitle formatting
+library(forcats)                # working with factors
+
+# Load data --------------------------------------------------------------------
+url <- 'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-01-23/english_education.csv'
+education <- readr::read_csv(file = url)
+
+# Data wrangling ---------------------------------------------------------------
+
+## Main plot ---------------------------------
+
+town_scores <- education %>%
+  filter(str_detect(income_flag, pattern = "town")) %>%
+  mutate(region = as.factor(rgn11nm), income = as.factor(income_flag)) %>%
+  select(region, income, education_score) %>%
+  group_by(region, income) %>%
+  summarise(mean_education_score = mean(education_score)) %>%
+  ungroup()  %>%
+mutate(region = fct_relevel(region,
+  "South West",
+  "East of England",
+  "South East",
+  "East Midlands",
+  "West Midlands",
+  "Yorkshire and The Humber",
+  "North East",
+  "North West"))%>%
+  mutate(region = fct_relevel(
+    region,
+    "South West",
+    "East of England",
+    "South East",
+    "East Midlands",
+    "West Midlands",
+    "Yorkshire and The Humber",
+    "North East",
+    "North West")) %>%
+  mutate(region = fct_recode(region,
+    "Yorkshire and\n The Humber" = "Yorkshire and The Humber"))
+
+
+
+## Annotations ---------------------------------
+
+NW_scores <- town_scores %>%
+  filter(region == "North West") %>%
+  pull(mean_education_score)
+
+label_df <- tibble(
+  horizontal = NW_scores,
+  vertical = rep(9, 3),
+  string = c("Higher income deprivation", "Lower", "Mid")
+)
+
+arrow_df <- tibble(
+  horizontal = NW_scores,
+  upper = rep(8.75, 3),
+  lower = rep(8.25, 3)
+)
+
+strings <- list(
+  title = "Towns in the North West have the highest attainment scores at
+  all  \n income deprivation levels",
+  sub = "\n  \n  Average educational attainment score for towns, by region
+  and income  \n  deprivation level, England",
+  cap = "Source: Office for National Statistics analysis using Longitudinal
+  Education Outcomes (LEO)  \n from the Department for Education (DfE) and Index
+  of Multiple Deprivation 2019 from the  \n Department for Levelling Up, Housing
+  and Communities (DLUHC)"
+)
+
+ONS_palette <- list(
+  red = "#7c265a",
+  blue = "#315f91",
+  light_grey = "#d3d3d3",
+  dark_grey = "#8A8A8A",
+  black = "#222222",
+  white = "#ffffff")
+
+vertical_grid_df <- tibble(
+  x = seq(-4, 6, by = 2),
+  ymin = rep(0, length(x)),
+  ymax = rep(8.25, length(x))
+)
+
+# Create plot ------------------------------------------------------------------
+
+p <- ggplot() +
+  geom_point(
+    data = town_scores,
+    mapping = aes(
+      x = mean_education_score,
+      y = region,
+      fill = income),
+    shape = 21,
+    size = 4) +
+  geom_linerange(
+    mapping = aes(x = 0, ymin = 0.25, ymax = 8.25),
+    colour = ONS_palette$dark_grey,
+    linewidth = 0.8) +
+  geom_linerange(
+    data = vertical_grid_df,
+    mapping = aes(x = x, ymin = ymin, ymax = ymax),
+    colour = ONS_palette$light_grey,
+    linewidth = 0.3) +
+  coord_cartesian(xlim = c(-4, 6), ylim = c(1.25,8.75)) +
+  labs(title = strings$title, subtitle = strings$sub, caption = strings$cap) +
+  scale_fill_manual(values = unname(ONS_palette)) +
+  geom_text(
+    data = label_df,
+    mapping = aes(
+      x = horizontal,
+      y = vertical,
+      label = string),
+    color = ONS_palette$black) +
+  geom_segment(
+    data = arrow_df,
+    mapping = aes(
+      x = horizontal,
+      xend = horizontal,
+      y = upper,
+      yend = lower),
+    arrow = arrow(length = unit(0.1, "inches"))) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text = element_text(size = 12, colour = ONS_palette$black),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(linetype = 2),
+    plot.title = element_markdown(size = 15,
+                                  hjust = 0,
+                                  face = "bold",
+                                  margin = margin(0,0,15,0)),
+    plot.title.position = "plot",
+    plot.subtitle = element_markdown(size = 14,
+                                     hjust = 0,
+                                     margin = margin(0,0,15,0)),
+    plot.caption = element_markdown(size = 12,
+                                    hjust = 0,
+                                    color = ONS_palette$dark_grey),
+    plot.caption.position = "plot")
+
+
+# Save plot --------------------------------------------------------------------
+
+out_path <- "2024-01-23-english-education"
+
+ggsave(
+  plot = p,
+  filename = paste0(out_path, ".png"),
+  device = "png",
+  width = 7.5,
+  height = 6.5,
+  units = "in",
+  dpi = 300,
+  bg = ONS_palette$white
+)
+
+# End of file
+```
+
+
+## Final Product 
+
+```{r}
+#| layout-ncol: 2
+#| out-width: "80%"
+knitr::include_graphics("2024-01-23-english-education.png")
+knitr::include_graphics("images/screenshot.png")
+```
