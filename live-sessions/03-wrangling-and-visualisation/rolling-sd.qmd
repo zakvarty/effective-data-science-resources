@@ -1,0 +1,212 @@
+---
+title: "Rolling estimation of the standard deviation"
+author: "Zak Varty"
+format: html
+self-contained: true
+---
+
+First we load our pad with NAs function.
+
+```{r}
+#' Add NAs to a vector
+#'
+#' @param x vector to which NAs will be added
+#' @param n_left number of NAs to add before x
+#' @param n_right number of NAs to add after x
+#'
+#' @return a vector containing x with the requested number of NA values before 
+#'   and after
+#'
+#' @examples
+#' pad_with_NAs(c("spider", "mouse", "cat", "dog"), n_left = 1, n_right = 2)
+#' pad_with_NAs(1:5, n_left = 0, n_right = 3)
+#'
+pad_with_NAs <- function(x, n_left, n_right){
+  c(rep(NA, n_left), x, rep(NA, n_right))
+}
+```
+
+
+Adapting the `rolling_mean()` function to a `rolling_sd()` only requires us to alter one line of code.
+
+```{r}
+rolling_sd <- function(x, window_width, ...){
+  # -----Input Checks ----------------------------------------------------------
+  # Check that x is a vector with numerical interpretation
+  stopifnot(is.logical(x) | is.integer(x) | is.double(x) | is.complex(x))
+  stopifnot(length(x) > 0)
+
+  # Check window_width is an odd, positive integer
+  stopifnot(length(window_width) == 1)
+  stopifnot(window_width %% 1 == 0)
+  stopifnot((window_width / 2) %% 1 != 0)
+  stopifnot(window_width > 0)
+
+  # ----- Function Body --------------------------------------------------------
+
+  # number of values left and right to include in each mean
+  half_width <- floor(window_width / 2)
+  x_padded <- pad_with_NAs(x, n_left = half_width, n_right = half_width)
+  evaluation_locations <- seq_along(x) + half_width
+
+  output <- rep(NA, length(x))
+
+  for (index in evaluation_locations) {
+    # Extract relevant values from x_padded
+    indices_in_window <- seq(index - half_width, index + half_width, by = 1)
+    values_in_window <- x_padded[indices_in_window]
+
+    # Calculate and store standard deviation
+    output[index - half_width] <- sd(values_in_window, ...)
+  }
+
+  return(output)
+}
+```
+
+
+
+```{r, warning = FALSE, message = FALSE}
+WIDTH = 365
+
+library(tidyverse)
+library(ismev)
+library(cowplot)
+data("dowjones", package = "ismev")
+
+dowjones_change <- dowjones %>%
+  mutate(index_change = Index - lag(Index)) %>%
+  filter(!is.na(index_change)) %>% 
+  mutate(sd_index_change = rolling_sd(index_change, window_width = WIDTH))
+
+dowjones_change %>% 
+  ggplot(aes(x = Date, y = index_change)) +
+  geom_point(col = rgb(0,0,0,0.2), size = 2) +
+  geom_line(aes(y = sd_index_change), col = "darkorange", lwd = 1.5) +
+  geom_vline(xintercept = as.Date("1998-06-01")) +
+  ggtitle("Daily change in Dow Jones Index", "with rolling estimate of standard deviation") +
+  ylab("") +
+  theme_minimal() +
+  theme(
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 0, face = "bold", hjust = 0.98, vjust = 2),
+    plot.title = element_text(size = 15, hjust = 0.02),
+    plot.subtitle = element_text(size = 12, hjust = 0.02)
+  )
+```
+  
+It seems that the standard deviation is increasing over time - the Dow Jones index is becoming more volatile. But how confident are we in our estimates of the standard deviation?
+
+We can add point-wise confidence bounds of  ± 2 standard errors to the plot to see if we might be able to draw a horizontal line within those bounds as an approximate way of testing the significance of this finding. 
+
+The [standard error of the sample standard deviation](https://stats.stackexchange.com/q/157305) is
+
+$$se(s) = \frac{1}{2 \sigma \sqrt{n}} \sqrt{ \left( \mu_4 - \frac{n-3}{n-1}\sigma^4\right)}$$
+
+$$\approx  \frac{1}{2 s \sqrt{n}} \sqrt{\left( \frac{1}{n}\sum_{i=1}^{n}[x_i - \bar x]^4 - \frac{n-3}{n-1}s^4\right)}.$$
+
+We can evaluate this using the following function:
+
+```{r}
+std_err_of_sd <- function(x, ...){
+  # calculate terms
+  s <- sd(x, ...)
+  mu_4_hat <- mean((x - mean(x, ...))^4)
+  n <- length(x)
+  a <- (n-3)/(n-1)
+  
+  # combine terms
+  standard_error <- 1 / (2 * s * sqrt(n)) * sqrt(mu_4_hat - a * s ^ 4)
+  return(standard_error)
+}
+```
+
+
+This allows us to adapt the `rolling_sd()` function so that it returns a vector of point estimates if the new argument `confidence_bounds == FALSE`. Otherwise, this function returns a data frame with one column for the rolling point estimates, lower confidence bounds and upper confidence bounds. 
+
+```{r}
+rolling_sd <- function(x, window_width, confidence_bounds = 2, ...){
+# -----Input Checks ----------------------------------------------------------
+  # Check that x is a vector with numerical interpretation
+  stopifnot(is.logical(x) | is.integer(x) | is.double(x) | is.complex(x))
+  stopifnot(length(x) > 0)
+
+  # Check window_width is an odd, positive integer
+  stopifnot(length(window_width) == 1)
+  stopifnot(window_width %% 1 == 0)
+  stopifnot((window_width / 2) %% 1 != 0)
+  stopifnot(window_width > 0)
+
+  # ----- Function Body --------------------------------------------------------
+
+  # number of values left and right to include in each mean
+  half_width <- floor(window_width / 2)
+  x_padded <- pad_with_NAs(x, n_left = half_width, n_right = half_width)
+  evaluation_locations <- seq_along(x) + half_width
+
+  point_estimates <- rep(NA, length(x))
+  standard_errors <- rep(NA, length(x))
+  
+  for (index in evaluation_locations) {
+    # Extract relevant values from x_padded
+    indices_in_window <- seq(index - half_width, index + half_width, by = 1)
+    values_in_window <- x_padded[indices_in_window]
+
+    # Calculate and store standard deviation
+    point_estimates[index - half_width] <- sd(values_in_window, ...)
+    standard_errors[index - half_width] <- std_err_of_sd(values_in_window, ...)
+  }
+  
+  if (confidence_bounds == 0) {
+    output <- point_estimates
+    } else {
+    output <- data.frame(
+      point_estimate = point_estimates,
+      lower_bound = point_estimates - confidence_bounds * standard_errors,
+      upper_bound = point_estimates + confidence_bounds * standard_errors)
+    }
+  
+  return(output)
+}
+```
+
+To add these confidence bounds to our plot, we first add them as columns to `dowjones_change`.
+
+```{r}
+sd_estimates <- rolling_sd(
+  x = dowjones_change$index_change, 
+  window_width = WIDTH, 
+  confidence_bounds = 2)
+
+# method 1
+sd_estimates$Date <- dowjones_change$Date
+dowjones_change <- left_join(x = dowjones_change, y = sd_estimates, by = "Date")
+
+## method 2
+#dowjones_change <- dowjones_change %>% 
+#  mutate(point_estimate = sd_estimates$point_estimate) %>% 
+#  mutate(lower_bound = sd_estimates$lower_bound) %>% 
+#  mutate(upper_bound = sd_estimates$upper_bound)
+```
+
+
+We can then construct the plot and see that the increase in volatility does indeed seem to be significant.
+
+```{r, warning = FALSE}
+ggplot(dowjones_change, aes(x = Date)) + 
+  geom_ribbon(
+    aes(ymin = lower_bound, ymax = upper_bound), 
+    fill = colorspace::adjust_transparency("darkorange", 0.3)) +
+  geom_line(
+    aes(y = point_estimate),
+    col = "darkorange",
+    lwd = 1.2) +
+  theme_minimal() +
+  ylab("") + 
+  ggtitle("Daily Change in Dow Jones Index is becoming more volatile over time",
+          "Rolling estimate of standard deviation  ± 2 standard errors")
+```
+ 
+ 
+
+

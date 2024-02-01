@@ -1,0 +1,109 @@
+---
+title: "Week 3: Data Exploration and Visualisation"
+author: "Zak Varty"
+format: 
+  revealjs:
+    logo: assets/EDS-logo.jpg
+    theme: assets/eds-slides-theme.scss
+    footer: "Effective Data Science: EDAV - Live Session - Zak Varty"
+    self-contained: true
+---
+
+## Week In Review {.smaller}
+
+::::{.columns}
+:::{.column width="50%"}
+__Data Wrangling__
+
+- Manipulate you data with base R and `{dplyr}`
+- Factors, Strings, Dates
+
+__EDA__
+
+- Purpose for you, manager and stakeholder
+- Not a prescriptive exercise
+- Roger Peng example
+
+:::
+:::{.column width="50%"}
+
+__Data Viz__
+
+- Reflect on purpose, audience and medium
+- Cédric Scherer ggplot tutorial
+- Exercise coming up!
+:::
+::::
+
+## Which `NormConf` video did you watch and what did you learn from it? 
+
+```{r}
+countdown::countdown(8)
+```
+
+## Other than `ggplot2`, what else have you used to create data visualisations? <br> <br> What are their relative strengths and weaknesses?
+
+```{r}
+countdown::countdown(8)
+```
+
+## Compare your implementation of `rolling_sd()` with someone else. <br> <br> What conclusions did you draw when applying it to the Dow Jones data? 
+
+```{r}
+countdown::countdown(8)
+```
+
+
+# Part 2: Writing Alt-text 
+
+## Exercise 1: Text to Plot
+
+Split into 5 groups and spread around the room. 
+
+Try to draw the plot based on the alt-text provided. 
+
+```{r}
+countdown::countdown(8)
+```
+
+## Exercise 2: Plot to Text 
+
+Write your own alt-text based on the plot provided. 
+
+```{r}
+countdown::countdown(8)
+```
+
+## Exercise 3: Text to plot
+
+Pass your alt-text to another group. They have to try and recreate your plot! 
+
+```{r}
+countdown::countdown(8)
+```
+
+
+# Break! Have ten minuts of hard-earned rest.
+
+> Help me to make this module better: 
+> 
+> www.menti.com   `54 08 92 6`
+
+
+```{r}
+countdown::countdown(10)
+```
+
+
+## Putting it all together 
+
+Wrangle, explore and visualise! Work alone or in small groups to complete this week's Tidy Tuesday challenge for yourself.
+
+![](images/2024-groundhog-data.png){border="5px solid"}
+
+## Getting the data {.smaller}
+
+`https://github.com/rfordatascience/tidytuesday/tree/master/data/2024/2024-01-30`
+
+![](images/2024-groundhog-github.png){border="5px solid"}
+
