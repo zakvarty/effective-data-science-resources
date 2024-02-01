@@ -1,0 +1,353 @@
+---
+title: "Live Session Week 1"
+subtitle: "Data Science Workflows"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: assets/eds-slides-theme.scss #(default / dark / simple)
+    logo: assets/EDS-logo.jpg
+    bibliography: assets/refs.bib
+    footer: "Effective Data Science: Workflows - Organising Your Code - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html)
+    chalkboard: false # (conflicts with self-contained)
+      #src: drawings.json
+      #theme: whiteboard
+      #read-only: true
+      #buttons: false
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: false
+---
+
+## Outline
+
+1. Review
+
+2. Discussion 
+
+3. Break
+
+4. Minimal R Package
+
+
+# Review 
+
+## Life Cycle of A Data Science Project 
+
+![source: R4DS](images/data-science-cycle-wickham.png)
+
+## Life Cycle of A Data Science Project 
+
+![](images/data-science-cycle)
+
+## Life Cycle of A Data Science Project 
+
+![](images/data-science-cycle-1)
+
+# Task Discussion 
+
+## Review - Organising your work 
+
+Project management spans all aspects of the data science cycle. 
+
+::::{.columns}
+:::{.column width="45%"}
+- _Organising your directories:_
+  - Benefits of a common directory structure
+  - Example project structure
+
+
+:::{.fragment}
+- _Organising your files:_
+  - Name with humans, computers and ordering in mind. 
+  - Pick file types with care.
+:::  
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="45%"}
+:::{.fragment}
+- _Organising your code:_ 
+  - Functional vs Object Oriented Programming 
+  - Naming conventions and style guide (verb & nouns)
+:::
+:::
+::::
+
+## Review: Task 1 - Github Show and Tell
+
+> _I asked you to:_ Find 3 data science projects on Github and explore how they organise their work. 
+
+In groups of 2-3, each pitch one of the projects you found. 
+
+- What does the project do?
+- Who made it?
+- Why do you think it is interesting?
+- What did you learn by looking at it? 
+
+```{r}
+countdown::countdown(5)
+```
+
+
+## Review: Task 2 - Make Project Templates 
+
+> _I asked you to:_ Create your own project directory (or directories) for this course and its assignments.
+
+<!--`https://www.menti.com/alrej2iedgtr` --> <!-- 2023 -->
+https://www.menti.com/alwpncyvhrrs <!-- 2024 -->
+
+::::{.columns}
+:::{.column width="30%"}
+
+![](images/mentimeter_qr_code_2024.png)
+:::
+:::{.column width=20%}
+:::
+:::{.column width="40%"}
+
+:::{.fragment}
+<br><br><br>
+Find a person you haven't spoken to today and explain your reasoning.
+
+```{r}
+countdown::countdown(3)
+```
+:::
+:::
+::::
+
+## Review: Task 3 - Function writing 
+
+> _I asked you to:_ write a function to calculate the rolling arithmetic mean of a numeric vector. 
+
+Pair up with a third person that you haven't spoken to yet today. 
+
+Discuss your thought process and compare code. 
+
+- What did you have to consider when writing this function?
+
+- Report back: One decision that you made differently _or_ a decision that you made the same, but implemented differently. 
+
+```{r}
+countdown::countdown(10)
+```
+
+## My thought process (1/n) {.incremental}
+
+```{r, echo=TRUE}
+rolling_mean <- function(x){}
+```
+
+- Do I pick window length or does the user? (User)
+  - What values should I allow? (Integers > 1.)
+
+. . . 
+
+- Gah, need two inputs: `x` = Vector to smooth, `window_length` = # obs in rolling window. Are these good names?
+
+```{r, echo=TRUE}
+rolling_mean <- function(x, window_length){}
+```
+
+## My thought process (2/n)
+
+- Is the window centred, left-aligned or right aligned? 
+  - centred for smoothing , right for prediction
+  - would I ever want left-aligned?  
+
+```{r, echo=TRUE}
+rolling_mean <- function(x, window_length, window_position = "centre"){}
+```
+
+. . . 
+
+- `window_position` as an argument should this be three separate functions? 
+  - One function should do one job well. Focus on centred. 
+  - Can always make a wrapper function later.
+
+```{r, echo=TRUE}
+rolling_mean <- function(x, window_length){}
+```
+
+## My thought process (3/n)
+
+::::{.columns}
+:::{.column width="45%"}
+<br><br>
+
+- What do I do at the edges?
+  - Miss them and return a shorter vector 
+  - Average fewer terms
+  - Pad with NAs `r emo::ji("check")`
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="50%"}
+<br><br>
+![](images/rolling-mean-sketch.png)
+:::
+::::
+
+## Let the worrying commence (4/n)
+
+- What if `window_length` is even? 
+  - Stupid. Left and right would have worked. Regret.
+  - Do I want to return a data frame? Something else?
+  - Limit to non-negative odd numbers.
+  - How do I do that? `is.integer()`? [Nope](https://adv-r.hadley.nz/vectors-chap.html#testing-and-coercion). 
+  
+## Let the worrying commence (5/n) {.incremental}
+
+- How could this go wrong? 
+  - Could give a non-vector for `x`
+  - Could give a non-numerical vector for `x`
+  - Could give a vector of values for `window_width`
+  - What happens if they give nothing or `NULL`?
+  - What else have I missed ...
+
+## The final code {.smaller}
+
+```{r, echo=TRUE}
+rolling_mean <- function(x, window_width, ...){
+  # -----Input Checks ----------------------------------------------------------
+  # Check that x is a vector with numerical interpretation
+  stopifnot(is.logical(x) | is.integer(x) | is.double(x) | is.complex(x))
+  stopifnot(length(x) > 0)
+
+  # Check window_width is an odd, positive integer
+  stopifnot(length(window_width) == 1)
+  stopifnot(window_width %% 1 == 0)
+  stopifnot((window_width / 2) %% 1 != 0)
+  stopifnot(window_width > 0)
+
+  # ----- Function Body --------------------------------------------------------
+
+  # number of values left and right to include in each mean
+  half_width <- floor(window_width / 2)
+  x_padded <- pad_with_NAs(x, n_left = half_width, n_right = half_width)
+  evaluation_locations <- seq_along(x) + half_width
+
+  output <- rep(NA, length(x))
+
+  for (index in evaluation_locations) {
+    # Extract relevant values from x_padded
+    indices_in_window <- seq(index - half_width, index + half_width, by = 1)
+    values_in_window <- x_padded[indices_in_window]
+
+    # Calculate and store mean
+    output[index - half_width] <- mean(values_in_window, ...)
+  }
+
+  return(output)
+}
+```
+
+## My thought process: documenting (5/n) {.smaller}
+
+```{r, eval=FALSE, echo=TRUE}  
+#' Calculate the rolling mean of a vector
+#'
+#' @param x Vector of values that can be interpreted numerically.
+#' @param window_width The number of values included in each mean calculation. Should be an odd, positive integer.
+#' @param ... Additional arguments to pass to the mean() function call.
+#'
+#' @return A vector of rolling mean values of the same length as `x`.
+#' @export
+#'
+#' @examples
+#' 
+#' rolling_mean(x = 1:5, window_width = 3)
+#' rolling_mean(x = 1:5, window_width = 5)
+#' rolling_mean(x = 1:5, window_width = 7)
+#' rolling_mean(x = c(TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE), window_width = 3)
+#' 
+rolling_mean <- function(x, window_width, ...){}
+```
+
+# BREAK 
+
+```{r}
+countdown::countdown(5)
+```
+
+# Minimal R project in 1 hour (or less)
+
+
+<!-- 
+## What is a package 
+
+
+## 20:80 Principle
+
+Programming and package development are huge topics.
+
+In 1 hour we will cover the easiest 20%, which will cover 80% of everything you ever need. 
+
+![](images/horst-R-over-time.png)
+
+## Ingrdients and tools a minimal R package 
+
+You will need: 
+
+- R and Rstudio
+- `{devtools}`
+- `{usethis}`
+- `{testthat}`
+- `{rOxygen2}`
+
+:::{.note}
+For the "hardcore" folks you can do all of this by hand, but it is an absolute pain. These tools were developed for a reason. 
+:::
+
+ :::{.callout-warning}
+For more advanced package development you may need to install Rtools. This allows you to do fun developer things like write functions that link R with other languages, including C++. This is not an R package, it is separate software.
+::: 
+
+## Create a template directory
+Once per package
+
+```{r, eval=FALSE, echo=TRUE}
+usethis::create_package(path = "~/path/to_your_package/packageName")
+```
+
+This should be: 
+
+- In your home directory, near where your other projects live
+- _Not_ in an existing project, package or git repo
+- _Not_ your R library where your packages are installed
+
+```{r, echo = TRUE}
+.libPaths()
+```
+## What to call your package? 
+Naming things in hard. 
+
+  - Personal: `zvtools` `broman` `ralph`
+  - Colours: `rColourBrewer`, `PrettyCols`, `wesanderson`
+  - Topic: `lubridate`, `sp`, `spatstat`, `ismev`
+
+```{r, eval=FALSE, echo=TRUE, cache=TRUE}
+usethis::create_package(path = "~/Work/teaching/2022_data_science/eds")
+```
+
+
+
+# Resources 
+
+https://hilaryparker.com/2014/04/29/writing-an-r-package-from-scratch/
+
+https://kbroman.org/pkg_primer/ 
+
+https://www.pipinghotdata.com/posts/2020-10-25-your-first-r-package-in-1-hour/#acknowledgements 
+
+https://r-pkgs.org/ 
+
+-->
+
+
