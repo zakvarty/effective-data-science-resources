@@ -1,0 +1,207 @@
+---
+title: "Assessment 1 Brief"
+subtitle: "MATH 70076 - Data Science"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: assets/eds-slides-theme.scss #(default / dark / simple)
+    logo: assets/EDS-logo.jpg
+    footer: "Effective Data Science: Assessment 1 Brief - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html)
+    chalkboard: false # (conflicts with self-contained)
+      #src: drawings.json
+      #theme: whiteboard
+      #read-only: true
+      #buttons: false
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: false
+---
+
+# Project Brief 
+
+## What are you expected to do? 
+
+<br>
+
+> "For this assessment you will submit a piece of _reproducible data journalism_. This will be
+published in a new magazine, to be launched as a competitor to [New Scientist](https://www.newscientist.com/), and should
+follow the [style guidelines](https://design-system.economist.com/documents/CHARTstyleguide_20170505.pdf) of The Economist.
+>
+> Your piece should be submitted as a file named `YOURCID-submission.pdf` and may take one
+of two forms:
+>
+> - a single, full page (20x24cm) infographic;
+> - an article of 200-300 words with 2-3 supporting data visualisations."
+
+## What are New Scientist articles like? 
+
+::::{.columns}
+:::{.column width="60%"}
+<br>
+
+- Present new findings and technical topics to a popular audience.
+
+- Think interested final year high school student in a relevant field.
+
+- Stories on topics which spark curiosity, encourage critical thinking and explore the societal implications of new findings.
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="35%"}
+<br>
+![](images/new-scientist-cover.webp){width="80%"}
+:::
+::::
+
+## What do you mean by a full page infographic? 
+
+::::{.columns}
+:::{.column width="50%"}
+<br>
+<br>
+
+A single, complex data visualisation (or series of simpler visualisations combined into a single graphic) with a clear narrative flow, which might be provided by text or annotations within the graphic. 
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="40%"}
+
+<br>
+
+### Examples
+
+- [Healthcare Infrastructure](https://www.informationisbeautifulawards.com/showcase/4730-status-of-public-healthcare-infrastructure-and-manpower-in-rural-india)
+- [Presidential Ratings](https://www.informationisbeautifulawards.com/showcase/5062-rating-the-presidents) 
+- [Journalist Killings](https://www.informationisbeautifulawards.com/showcase/4632-journalist-killings-the-last-three-decades) 
+- [X-men characters](https://www.informationisbeautifulawards.com/showcase/5807-appearance-of-the-five-most-popular-x-men-characters-in-chris-claremont-s-the-uncanny-x-men-comics)
+- [World Series](https://www.informationisbeautifulawards.com/showcase/5031-world-series-ten-years-in-review)
+:::
+::::
+
+## What do you mean by article and supporting visualisations?
+
+::::{.columns}
+:::{.column width="50%"}
+![](images/economist-scrapbook-2.png)
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="40%"}
+- 200-300 words + 2-3 supporting visualisations.
+
+- Examples from a recent Economist magazine. 
+
+- More complicated examples (typically, detailed maps) might be better suited to infographic style. 
+:::
+::::
+
+## Formatting 
+
+<br>
+
+> __Note 1:__ Submitted articles should be clearly presented but _final typesetting and arrangement will be controlled by the magazine’s editorial board_. To ensure high print quality, all figures should be provided as either vector graphics or with a resolution of least 300 dpi.
+
+
+## What to write about? 
+
+<br>
+
+> __Note 2:__ Your submitted article or infographic should be based on a data set published on [data is plural archive](https://www.data-is-plural.com/archive/) between `2023-08-02` and `2023-12-06`. Each student must use a distinct data set; you should register your your CID against your chosen dataset in [this spreadsheet](https://imperiallondon-my.sharepoint.com/:x:/g/personal/zvarty_ic_ac_uk/EWZfAI0UVwROlLdSCRvBamcBQTYfyna06NrVIjkNpSm98g).
+
+## Advice for Picking a Data Set 
+
+<br>
+
+:::{.incremental}
+- Data quantity and quality vary, pick something that will let you show off your skills but is manageable in the time available. 
+
+- Welcome to change your mind, that's why I picked 70 data sets. Just update spreadsheet in case someone else wants your current data.
+
+- Think about how to tell a compelling story, this is easiest if the topic interests you. 
+:::
+
+## Examples from last year - Article & Visualisations
+
+```{r}
+#| fig-align: center
+knitr::include_graphics("images/example-article-and-visualisations.png")
+```
+
+## Examples from last year - Full Page Infographic
+
+```{r}
+#| fig-align: center
+knitr::include_graphics("images/example-infographic.png")
+```
+
+
+## Examples from last year - Somewhere In-Between 
+
+```{r}
+#| fig-align: center
+knitr::include_graphics("images/example-inbetween.png")
+```
+
+
+# What do I submit? 
+
+## Files to submit 
+
+> You should submit two files in total for this assessment. 
+>
+>These files should be submitted via the Imperial College VLE on Blackboard by _13:00 on Wednesday 21 Feb 2024_. Note that large files
+can take quite some time to upload. These files should be named:
+>
+> 1. `YOURCID-math70076-assessment-1.pdf`
+> 2. `YOURCID-math70076-assessment-1.zip`
+>
+> Please ensure that you upload each document to the correct part of the learning space. Allowances will not be made for incorrect submission.
+
+## Project Files: `YOURCID-math70076-assessment-1.zip` {.smaller}
+
+<br>
+
+>  This is a zipped folder containing the code, data, documentation, and anything else needed for the magazine team to reproduce your submission.
+>
+> This project folder should contain a file named `notes-to-editor.md`. This file should contain a reflective summary of how you have designed your submission and applied the style guide, addressing each of the following points in ∼ 100 words (300 words total):
+> 
+> :::{.incremental}
+> - Summarise the style guidelines that are relevant to your submission;
+> - Clearly state which guidelines are and are not met;
+> - Describe any alterations you would make to your submission with the assistance of the magazine’s team of experienced data journalists.
+> :::
+
+## Assessment Criteria 
+
+>This assessment will be graded out of 20 marks in each of the following categories:
+>
+>1. Submitted infographic or article;
+>1. Reflective summary of style guide;
+>1. Project-level structure and documentation;
+>1. Code-level structure and documentation;
+>1. Reproducibility and accuracy of overall workflow (incl. data gathering and manipulation).
+
+## Grading 
+
+The number of marks allocated in each category will be guided by the following criteria:
+
+| Mark | Description                                                          |
+|------|----------------------------------------------------------------------|
+| 0    | Missing or highly flawed                                             |
+| 4    | Substandard: major revisions required before approval                |
+| 8    | Acceptable: correct up to small errors, moderate revisions required  |
+| 12   | Good: requires only minor revisions before approval                  |
+| 16   | Excellent: could be approved as presented                            |
+| 20   | Exceptional: exceeds expectations or extends taught material         |
+
+
+
+# Questions? 
+
+
