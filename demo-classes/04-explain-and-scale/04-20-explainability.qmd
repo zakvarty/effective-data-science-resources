@@ -1,0 +1,373 @@
+---
+title: "Explainability Methods"
+subtitle: "MATH 70076 - Data Science"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: assets/eds-slides-theme.scss #(default / dark / simple)
+    logo: assets/EDS-logo.jpg
+    bibliography: assets/refs.bib
+    footer: "Preparing for Production - Explain and Scale - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html)
+    chalkboard: false # (conflicts with self-contained)
+      #src: drawings.json
+      #theme: whiteboard
+      #read-only: true
+      #buttons: false
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: false
+---
+
+
+## Help me to make this module better
+
+<br>
+
+> _Mid-module feedback_
+>
+> `menti.com`
+>
+> `54 08 92 6`
+
+
+# Explainability Methods
+
+## Notation Setup
+
+Suppose we have a model $f$, which takes as inputs predictors $X$ and model parameters $\theta$, to produce predictions $f(X,\theta)$ of outcomes $y$. 
+
+<br>
+
+We pick our model parameters $\hat \theta$ and obtain predictions $\hat y = f(X, \hat \theta)$ by optimising some loss function $L(y, \hat y)$, e.g.: 
+
+<br>
+
+$$\hat\theta = \arg\min_{\theta}\frac{1}{n}\sum_{i=1}^{n} [y_i - f(X, \theta)]^2$$
+
+
+## Why do we care about explainability? 
+
+Our model $f(X, \hat\theta)$ is a mapping between predictor space and response space.
+
+<br>
+
+This mapping is not necessarily simple or straight-forward to explain. But before the model can be put into production we will most likely have to: 
+
+- Explain which predictors are most important in the model,
+- Describe the effect of each predictor on the predicted response. 
+
+. . . 
+
+:::{.callout-caution title="These tasks are ambiguous"}
+With the person next to you, identify at least two interpretations of each.
+:::
+
+```{r}
+countdown::countdown(3)
+```
+
+## Which predictors are important in the model?
+
+:::{.incremental}
+- Strong evidence that the predictor influences the outcome (statistical significance)
+
+- The value of the predictor has a large influence on the predicted value (large effect size) 
+
+- Usually interested in the combination of these (meaningful effect)
+:::
+. . . 
+
+:::{.callout-note title="Catalytic Predictors"}
+When considering predictor importance, this might depend on which other predictors are in the model and how the model allows these to interact with one another. If first-order or second-order interactions are not included in the model then predictor importance could be masked. 
+:::
+
+## How does each predictor influence the predicted response? 
+
+<br>
+
+:::{.incremental}
+- Is the explanation needed for a specific individual?  
+- Or in a local region of the predictor space?
+- Or over all of the predictor space? 
+- Should this account for some regions of predictor space being more densely populated?
+:::
+
+# Quantifying Predictor Importance 
+
+## Quantifying Predictor Importance
+
+```{r}
+countdown::countdown(3)
+```
+
+:::{.callout-warning title="What approaches might we take to quantifying predictor importance?"}
+With the person next to you discuss how you might assess the importance of a predictor within an particular model. 
+:::
+
+. . . 
+
+To investigate the importance of a predictor within a model we want to investigate how much worse the model would be without that predictor. 
+
+- Remove the predictor from the design matrix: $X_{-p}$
+- Modify the predictor to break any association with the response: $X_{\tilde p}$
+
+## Permutation Test for Feature importance 
+
+Destroy connection by shuffling/ resampling the values of the $p^{\text{th}}$ predictor.
+
+(Taking care to propagate this into AR and interaction terms as needed)
+
+1. Calculate $L_0 = L(y,\  f(X, \hat\theta_X))$
+
+2. Calculate $L_1 = L(y,\  f(X_{\tilde p}, \hat \theta_{X_{\tilde p }}))$
+
+If $|L_1 - L_0|$ is large, then the feature was important to the model. 
+
+. . . 
+
+:::{.callout-warning title="What do we mean by 'large'?"}
+Discuss with the person next to you how we might quantify whether the change in model performance is large.
+:::
+
+```{r}
+countdown::countdown(3)
+```
+
+## Permutation Test - How large is large? 
+
+:::{.incremental}
+
+1. Calculate $L_0 = L(y,\  f(X, \hat\theta_X))$
+
+2. For $i = 1,... m:$ Calculate $L_i = L(y,\  f(X_{\tilde p}^{(i)}, \hat \theta_{X_{\tilde p}^{(i)}}))$
+
+3. For pairs of loss function values $\{i, j : 0 \leq i < j  \leq m\}$ calculate $D_{ij} = L_i - L_j$. 
+
+4. Compare the distributions of ${D_{ij} : i = 0}$ to $D_{ij}: i > 0$.
+:::
+
+. . . 
+
+:::{.callout-note title="This should be a familiar idea"}
+This is a similar concept to a LRT or a NHST of $\hat\beta_p = 0$ vs $\hat\beta_p \neq 0$ in a linear model, but non-parametric and for an arbitrary model.
+:::
+
+## Permutation Test 
+
+### Benefits 
+
+- Simple conceptually and to implement
+- Maintains marginal distribution of predictor and model interpretation 
+
+### Drawbacks
+
+- Have to be careful with some predictors (factors, intercepts)
+- Unclear how to extend to non-numeric predictors: e.g. text embeddings 
+
+
+# Describing the effect each predictor has on the response.
+
+## Counterfactual Predictions 
+
+> _Counterfactual modelling_
+>
+> Adjust the values of one (or more) predictors and see what prediction would have been made. Leads to various methods to quantify and visualise the effect of each predictor on the response. 
+
+. . . 
+
+::::{.columns}
+:::{.column width="50%"}
+__Benefits:__ 
+
+- Individual-level explanations 
+- Suggest ways to improve outcomes using $\frac{\delta \hat y_i}{\delta x_{ij}}$
+:::
+:::{.column width="50%"}
+__Care needed:__ 
+
+- Mutable vs immutable predictors
+- Extrapolation / interpolation risk 
+- Correlation vs Causation
+:::
+::::
+
+## Individual Conditional Expectation Plots
+
+::::{.columns}
+:::{.column width="30%"}
+
+For each individual, vary the predictor value and plot how the outcome changes.
+
+<br>
+
+  $$\hat y(x_{ip}) = f(x_{ip}; \hat\theta_X)$$
+
+Useful for detecting direct and first-order effects.  
+:::
+:::{.column width="70%"}
+```{r}
+#| echo: false 
+#| out-width: 80%
+#| fig-align: center
+knitr::include_graphics("images/ice-plot.png")
+```
+:::
+::::
+
+## Individual Conditional Expectation Plots
+
+```{r}
+countdown::countdown(4)
+```
+
+::::{.columns}
+:::{.column width="30%"}
+:::{.incremental}
+- What would an ICE plot look like for a covariate with no predictive power?
+
+- How might an `age:vaccine` interaction show on this plot? 
+:::
+:::
+:::{.column width="70%"}
+```{r}
+#| echo: false 
+#| out-width: 80%
+#| fig-align: center
+knitr::include_graphics("images/ice-plot.png")
+```
+:::
+::::
+
+## Partial Dependence Plots
+  
+::::{.columns}
+:::{.column width="30%"}
+
+Point-wise mean of ICE
+
+<br>
+
+Shows the average effect of predictor at population level.
+
+__Not__ for any individual or the "average" individual.
+  
+:::
+:::{.column width="70%"}
+```{r}
+#| echo: false 
+#| out-width: 80%
+#| fig-align: center
+knitr::include_graphics("images/pdp-plot.png")
+```
+:::
+::::
+  
+## ICE and PDP
+ 
+```{r}
+countdown::countdown(4)
+```
+
+:::{.callout-warning title="Test your understanding"}
+1. Sketch the ICE plot and PDP for a linear regression model with a random intercept term:
+
+$$ Y \sim \mathrm{N}(X\beta + \eta, \sigma^2) \quad \text{ where } \quad \eta_i \sim N(0, \tau^2).$$
+<br>
+<br>
+
+2. How does this change for a logistic regression with random intercept: 
+
+
+$$Y_i \sim \mathrm{Bern}(Z_i) \quad \text{ where } \quad  Z_i = \frac{\exp\{X\beta + \eta\}}{1 + \exp\{X\beta + \eta\}}\quad \text{ and } \quad \eta_i \sim N(0, \tau^2).$$
+:::
+
+## Local Interpretable Model Explanation
+
+Use an explainable model to construct a local approximation $g$ to the true response surface $f$.
+
+e.g. using Local linear regression for $g$:
+
+$$ g(x^\prime) = \hat \beta_0 + \beta_1 x$$
+where
+
+$$ (\hat \beta_0, \hat \beta_1) = \underset{\beta_0, \beta_1}{\arg\min} \sum_{i=1}^{n} w(x_i - x^\prime) [y_i - \hat\beta_0 - \hat\beta_1 x_i]^2.$$
+
+## LIME - Picking $g$
+
+- Is a linear model the only / best choice? No. 
+
+- How do we pick $w$? Any kernel function: hat, Gaussian, Epanechnikov...
+
+- How do we pick bandwidth: Tricky and context dependent. LOOCV on "local-ish" points. 
+
+- Do we have to use evaluations at other observations to construct $g$? No! Augmentation is good but leads us into experimental design territory. 
+
+## LIME in 2D
+
+::::{.columns}
+:::{.column width="30%"}
+
+<br>
+
+Example explanation of a classification model with 2 predictors. 
+  
+:::
+:::{.column width="70%"}
+```{r}
+#| echo: false 
+#| out-width: 60%
+#| fig-align: center
+knitr::include_graphics("images/lime-plot.png")
+```
+:::
+::::
+  
+## SHAP 
+
+- All previous explanations have been model specific. 
+
+- Interpretation of many models is dependent on which predictors are included in the model.
+
+- SHAP shows feature importance over a family of $2^p$ models.
+
+. . . 
+
+Similar to permutation testing with some important differences:
+
+1. We measure changes in prediction, not loss. 
+2. We average combinations of predictors to include within the model.
+
+## SHAP outline
+::::{.columns}
+:::{.column width="30%"}
+<br>
+  
+  - [Chapter 9.6](https://christophm.github.io/interpretable-ml-book/shap.html) of Interpretable ML gives a more detailed explanation of SHAP calculations
+  
+  - Example application:
+  
+:::
+:::{.column width="70%"}
+```{r}
+#| echo: false 
+#| out-width: 80%
+#| fig-align: center
+knitr::include_graphics("images/shap-plot.png")
+```
+:::
+::::
+  
+  
+## Summary 
+
+Many explainability methods, which is best depends on: 
+
+- Complexity, smoothness and cost of full model
+- What you are trying to explain
+- Who you are trying to explain it to.
