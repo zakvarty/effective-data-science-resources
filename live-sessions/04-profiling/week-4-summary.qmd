@@ -1,0 +1,848 @@
+---
+title: "Week 4 Live Session"
+subtitle: "Preparing for Production"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: assets/eds-slides-theme.scss #(default / dark / simple)
+    logo: assets/EDS-logo.jpg
+    #bibliography: assets/refs.bib
+    footer: "Effective Data Science: Production - Live Session - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html)
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: false
+---
+
+## Session Plan 
+<!--
+```{css, echo=FALSE}
+.reveal code {
+  max-height: 100% !important;
+}
+```
+-->
+
+1. Week in review 
+2. Discussion of activities 
+3. Code profiling exercise 
+
+Optional
+
+4. Reading Group- LIME
+
+# Week In Review 
+
+## Topic Summary
+::::{.columns}
+:::{.column width="47.5%"}
+_Reproducibility_
+
+- Reproduction: your data and code
+- Replication: generalise to new data
+- Stochastic methods
+
+_Explainability_
+
+- Local / Global, Conditional  Marginal
+- Even simple models can be tricky
+- Meta-models (LIME and friends)
+
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="47.5%"}
+
+_Scaling_
+
+- Frequency of use and size of data
+- Profiling with `{tictoc}` and `{profvis}`
+- Profiling linked to debugging.
+:::
+::::
+
+## Task Review 
+
+<br>
+
+### Core
+
+- Read the [LIME paper](https://arxiv.org/abs/1602.04938), which we will discuss during the live session.
+
+- Work through the [understanding LIME](https://cran.r-project.org/web/packages/lime/vignettes/Understanding_lime.html) R tutorial.
+
+- Use code profiling tools to assess the performance of your `rolling_mean()` and `rolling_sd()` functions. Identify any efficiencies that can be made.
+
+
+## Task Review 
+
+<br>
+
+### Bonus 
+
+Simulate a HPP $\{X_1, \ldots, X_N\}$ on $[0,T]$ in two ways:
+
+ - First use $X_{i+1} - X_{i} \sim \text{Exp}(\lambda)$. 
+ 
+ - Second use $N \sim \text{Pois}(\lambda)$ and $X_i | N = n \overset{\mathrm{i.i.d}}{\sim} \text{Unif}(0, T)$. 
+ 
+ Evaluate and compare the reproducibility and scalability of each implementation.
+ 
+
+# Discussion of Tasks 
+
+## Where did you identify bottle necks in your `rolling_mean()` and `rolling_sd()` functions? 
+
+```{r}
+countdown::countdown(4)
+```
+
+## Profiling `rolling_mean()`
+
+Calculate weekly mean on 1 year of data:
+
+<br>
+
+```{r}
+#| echo: true 
+#| eval: false
+#| filename: "Console"
+source("src/pad-with-NAs.R")
+source("src/rolling-mean.R")
+sim_data <- 1:356
+profvis::profvis(rolling_mean(sim_data, window_width = 7))
+```
+
+<br>
+
+::::{.columns}
+:::{.column width="55%"}
+```{r}
+#| echo: false
+#| eval: true
+#| message: true
+message("Error in parse_rprof_lines(lines, expr_source) : 
+      No parsing data available. Maybe your function was too fast?")
+```
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="40%"}
+![](images/too-fast-flame-graph.png)
+:::
+::::
+
+## Profiling `rolling_mean()`
+
+__Solutions:__ 
+
+- `{microbenchmark}` if you are really interested in instances of this size.
+- Scale up to a larger example
+
+. . .
+
+```{r}
+#| echo: true 
+#| eval: false
+#| filename: "Console"
+source("pad-with-NAs.R")
+source("rolling-mean.R")
+sim_data <- 1:36500
+profvis::profvis(rolling_mean(x = sim_data, window_width = 7))
+```
+
+## Profiling 
+
+![](images/rolling-mean-profiling.png)
+
+## What did / could you do to resolve those bottlenecks?
+
+```{r}
+countdown::countdown(4)
+```
+
+
+## What did / could you do to resolve those bottlenecks?
+
+<br>
+
+:::{.incremental}
+- Drop and append to reduce copying
+
+- Use data structure / language that allows modification in place
+
+- Switch to "Online" rolling mean estimate
+
+- Any other ideas not already mentioned?
+:::
+
+# Profiling Exercises
+
+## Example - Reinventing the wheel
+
+Compare the time it takes to sum the rows of a matrix using a for loop versus using the built-in function `rowSums()`.
+
+```{r}
+#| echo: true
+#| eval: true
+n_rows <- 1e6
+n_cols <- 2
+
+# create a matrix with random entries
+X = matrix(data = rnorm(n_rows * n_cols), ncol = 2)
+```
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: true
+
+system.time({
+  row_sums_X <- rep(NA, nrow(X))
+  
+  for (i in seq_along(row_sums_X)) {
+    row_sums_X[i] <- sum(X[i, ])
+  }
+})
+```
+
+## Example 1 
+
+```{r}
+#| echo: true
+#| eval: true
+# For loop
+system.time({
+  row_sums_X <- rep(NA, nrow(X))
+  
+  for (i in seq_along(row_sums_X)) {
+    row_sums_X[i] <- sum(X[i, ])
+  }
+})
+```
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: true
+# Using built in function
+system.time( 
+    row_sums_X <- rowSums(X)
+)
+```
+
+## Task 1 - Check the Docs
+
+For Loop: 
+```{r}
+#| echo: false
+#| eval: true
+# For loop
+system.time({
+  row_sums_X <- rep(NA, nrow(X))
+  
+  for (i in seq_along(row_sums_X)) {row_sums_X[i] <- sum(X[i, ])}
+})
+```
+
+Built in function from `{Matrix}`: 
+
+```{r}
+#| echo: false
+#| eval: true
+# Vectorized approach
+system.time( 
+    NewVector <- rowSums(X)
+)
+```
+
+:::{.callout-note title="Task 1"}
+The output is three values for 'user' 'system' and 'elapsed'. Using the documentation for `system.time()` investigate what these mean. 
+
+_Extension:_ What happens if we consider a  "wide" or "square-ish" matrix, rather than a "tall" matrix.
+:::
+
+```{r}
+countdown::countdown(3)
+```
+
+## Solution 1 {.smaller}
+
+> "`system.time()` calls the function `proc.time()`, evaluates `expr`, and then calls `proc.time()` once more, returning the difference between the two `proc.time()` calls." - - system.time {base}  
+
+
+> "`proc.time()` returns five elements for backwards compatibility, but its print method prints a named vector of length 3. The first two entries are the total user and system CPU times of the current R process and any child processes on which it has waited, and the third entry is the ‘real’ elapsed time since the process was started." - proc.time, {base}
+
+<br>
+_Note:_
+
+> "Timings of evaluations of the same expression can vary considerably depending on whether the evaluation triggers a garbage collection. When `gcFirst = TRUE` a garbage collection (gc) will be performed immediately before the evaluation of `expr`. This will usually produce more consistent timings." - system.time {base}
+
+## Task 2 - A Different Approach
+
+Investigate whether using `X[i, 1] + X[i, 2]` rather than `sum(X[i, ])` significantly alters any of these values. 
+
+```{r}
+countdown::countdown(5)
+```
+
+## Solution 2 
+
+::::{.columns}
+:::{.column width="50%"}
+```{r}
+#| echo: true
+#| eval: true
+row_sums_X = rep(NA,1000000) 
+
+system.time( 
+  gcFirst = TRUE,
+  for (i in 1:nrow(X)) {
+    row_sums_X[i] <- sum(X[i, ])
+  }
+)
+```
+:::
+:::{.column width="50%"}
+```{r}
+#| echo: true
+#| eval: true
+row_sums_X = rep(NA,1000000) 
+
+system.time(
+  gcFirst = TRUE,
+  for (i in 1:nrow(X)) {
+    row_sums_X[i] <- X[i, 1] + X[i, 2]
+  }
+)
+```
+:::
+::::
+
+
+In this case, calling the `sum()` function is less efficient than doing two look ups and an addition within R.
+
+. . . 
+
+This is interesting because it goes against the standard advice that vectorised or compiled code will generally be faster.
+
+
+## Task 3 - Generating Random Variates 
+
+Below are three ways to create a vector of Gaussian random variates. Measure how long each approach takes and explain the ordering that you find.  
+
+```{r}
+#| echo: true
+#| eval: false
+random_vals <- NULL
+for (i in 1:10000) {
+  random_vals <- c(random_vals, rnorm(n = 1, mean = i, sd = 1))
+}
+```
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: false
+random_vals <- rep(NA,10000)
+for (i in 1:10000) {
+  random_vals[i] <- rnorm(n = 1, mean = i, sd = 1)
+}
+```
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: false
+random_vals <- rnorm(n = 10000, mean = 1:10000, sd = 1)
+```
+
+```{r}
+countdown::countdown(8)
+```
+
+## Solution 3 {.smaller}
+
+Let's simplify things by defining each of these as a function. 
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: true
+random_vals_grow <- function(){
+  random_vals <- NULL
+  for (i in 1:10000) {
+    random_vals <- c(random_vals, rnorm(n = 1, mean = i, sd = 1))
+  }
+}
+```
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: true
+random_vals_preallocate <- function(){
+  random_vals <- rep(NA,10000)
+  for (i in 1:10000) {
+    random_vals[i] <- rnorm(n = 1, mean = i, sd = 1)
+  }
+}
+```
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: true
+random_vals_vector <- function(){
+  random_vals <- rnorm(n = 10000, mean = 1:10000, sd = 1)
+}
+```
+
+## Solution 3 
+
+<br>
+
+
+```{r}
+#| echo: true 
+#| eval: true
+library("tictoc")
+
+tic()
+random_vals_grow()
+toc()
+
+tic()
+random_vals_preallocate()
+toc()
+
+tic()
+random_vals_vector()
+toc()
+```
+
+
+## Solution 3 
+
+- Preallocation improves over growing the vector because it allows modification in place. For a detailed discussion of R's copy on modify behaviour see [Advanced R Chapter 2](https://adv-r.hadley.nz/names-values.html).
+
+- The vectorised code essentially moves the `for` loop to C. This is not only a faster language but also reduces the number of call that have to be made to C functions. 
+
+
+## Task 4 Simple Earthquake Simulation {.smaller}
+
+The following code will simulate a homogeneous Poisson process on the interval $[0,t_{\text{max}}]$ with rate $\lambda = 0.2$. 
+
+<br>
+
+Each event has an mark associated with it, drawn from a shifted exponential distribution. 
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: false
+t_max <- 100 
+lambda <- 0.2 
+
+event_times <- c()
+event_marks <- c() 
+t <- 0
+
+time_to_first_event <- rexp(n = 1, rate = lambda)
+t <- t + time_to_first_event
+
+while (t < t_max) {
+  event_times <- c(event_times, t)
+  event_marks <- c(event_marks, 3 + rexp(n = 1, rate = 1))
+  time_to_next_event <- rexp(n = 1, rate = lambda)
+  t <- t + time_to_next_event
+}
+
+point_pattern <- data.frame(event_times, event_marks)
+```
+
+
+## Task 4.1 Simple Earthquake Simulation Function {.smaller}
+
+*Task 4.1:* Convert this code to a function.
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: slide
+t_max <- 100 
+lambda <- 0.2 
+
+event_times <- c()
+event_marks <- c() 
+t <- 0
+
+time_to_first_event <- rexp(n = 1, rate = lambda)
+t <- t + time_to_first_event
+
+while (t < t_max) {
+  event_times <- c(event_times, t)
+  event_marks <- c(event_marks, 3 + rexp(n = 1, rate = 1))
+  time_to_next_event <- rexp(n = 1, rate = lambda)
+  t <- t + time_to_next_event
+}
+
+point_pattern <- data.frame(event_times, event_marks)
+```
+
+```{r}
+countdown::countdown(3)
+```
+
+## Solution 4.1 {.smaller}
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: true
+sim_hpp <- function(lambda = 0.2, t_max = 100, offset = 3){
+  
+  event_times <- c()
+  event_marks <- c() 
+  t <- 0 
+
+  time_to_first_event <- rexp(n = 1, rate = lambda)
+  t <- t + time_to_first_event
+  
+  while (t < t_max) {
+    event_times <- c(event_times, t)
+    event_marks <- c(event_marks, offset + rexp(n = 1, rate = 1))
+    time_to_next_event <- rexp(n = 1, rate = lambda)
+    t <- t + time_to_next_event
+  }
+  
+  point_pattern <- data.frame(time = event_times, mark = event_marks)
+  
+  # return the data.frame so that it can be stored, but do not print to console
+  invisible(point_pattern)
+}
+```
+
+## Task 4.2: Investigating Scalability 
+
+*Task 4.2:* Create a plot showing how the runtime of this code changes as $t_{\text{max}}$ increases. 
+
+```{r}
+countdown::countdown(5)
+```
+
+## Solution 4.2 
+
+Time the code: 
+
+```{r}
+#| echo: true
+#| eval: true
+t_max_values <- seq(5000, 50000, by = 1000)
+run_times <- rep(NA, length(t_max_values))
+
+for (run in seq_along(t_max_values)) {
+  
+  tic(quiet = TRUE)
+  sim_hpp(t_max = t_max_values[run])
+  timer <- toc(quiet = TRUE)
+
+  run_times[run] <- timer$toc - timer$tic
+  #print(paste("Completed run with t_max = ", t_max_values[run]))
+}
+```
+
+
+## Solution 4.2 
+
+Create the plot: 
+
+```{r}
+#| echo: true
+#| eval: true
+#| output-location: slide
+#| fig-align: center
+#| out-width: "80%"
+plot(
+  x = t_max_values,
+  y = run_times,
+  pch = 16,
+  ylab = "Runtime (seconds)", 
+  xlab = "t_max")
+```
+
+## Task 4.3 - Code Profiling
+
+Simulate an earthquake catalogue on [0, 100000] with rate $\lambda= 0.2$.
+
+<br>
+
+Use `profvis::profvis()` to identify bottlenecks in your code.
+
+<br>
+
+_Note:_ We need to remember to source the function from a separate script so that we get a line-by-line breakdown. 
+
+```{r}
+countdown::countdown(5)
+```
+
+## Solution 4.3
+
+```{r}
+#| echo: true
+#| eval: false
+library(profvis)
+source("sim_hpp.R")
+profvis::profvis(sim_hpp(t_max = 100000))
+```
+
+![](images/point-process-profiling.png)
+
+
+## Task 4.4: Refactoring
+
+Rewrite the code to be more efficient and create a second plot comparing the runtime of your new function to the original.
+
+```{r}
+countdown::countdown(10)
+```
+
+## Solution 4.4 
+
+Solving this bottleneck is complicated by the fact that we do not know how many observations we will have before running the code.
+
+. . . 
+
+<br>
+
+We know that our total number of events $N \sim \text{Poisson}(\lambda t_\text{max}$), this means we can (with very low probability) have arbitrarily large number of events being simulated. 
+
+. . . 
+
+One solution is to pre-allocate storage that needs to be extended on only 1 in 1000 runs of the function and which further extends that storage as required.
+
+## Solution 4.4 
+
+<br>
+
+```{r}
+#| echo: true
+#| eval: true
+#| code-line-numbers: 3-5,27
+sim_hpp_preallocated <- function(lambda = 0.2, t_max = 100, offset = 3){
+ 
+initial_storage_size <- qpois(p = 0.999, lambda = lambda * t_max)
+event_times <- rep(NA, initial_storage_size)
+event_marks <- rep(NA, initial_storage_size) 
+t <- 0 
+
+time_to_first_event <- rexp(n = 1, rate = lambda)
+t <- t + time_to_first_event
+
+event_count <- 0
+
+while (t < t_max) {
+  # increment event counter and record details of this event
+  event_count <- event_count + 1
+  event_times[event_count] <- t
+  event_marks[event_count] <- offset + rexp(n = 1, rate = 1)
+  
+  # calculate time of next event
+  time_to_next_event <- rexp(n = 1, rate = lambda)
+  t <- t + time_to_next_event
+}
+
+hpp <- data.frame(event_times, event_marks)
+
+# keep only rows that have been filled in
+hpp[!is.na(hpp$event_times), ]
+}
+```
+
+## Solution 4.4 
+
+We can then compare the time it takes to run each function as $t_{\text{max}}$ increases.
+
+```{r}
+t_max_values <- seq(from = 5000, to = 50000, by = 2500)
+run_times_1 <- rep(NA, length(t_max_values))
+run_times_2 <- rep(NA, length(t_max_values))
+
+for (run in seq_along(t_max_values)) {
+  
+  set.seed(1234)
+  tic(quiet = TRUE)
+  sim_1 <- sim_hpp(t_max = t_max_values[run])
+  timer_1 <- toc(quiet = TRUE)
+
+  set.seed(1234)
+  tic(quiet = TRUE)
+  sim_2 <- sim_hpp_preallocated(t_max = t_max_values[run])
+  timer_2 <- toc(quiet = TRUE)
+  
+  run_times_1[run] <- timer_1$toc - timer_1$tic
+  run_times_2[run] <- timer_2$toc - timer_2$tic
+  #print(paste("Completed run with t_max = ", t_max_values[run]))
+  
+  # check that same number of events generated by each method
+  # we don't want to remove differences due to size of simulated event set.
+  #print(paste("n_1 = ", NROW(sim_1)))
+  #print(paste("n_2 = ", NROW(sim_2)))   
+}
+```
+
+## Solution 4.4 
+
+Create the plot of runtimes 
+
+```{r}
+#| echo: true
+#| eval: true
+#| output-location: slide
+#| out-width: "80%"
+#| fig-align: center
+plot(
+  x = t_max_values,
+  y = run_times_1,
+  xlab = "t_max", 
+  ylab = "runtime (seconds)", 
+  pch = 16)
+points(x = t_max_values, y = run_times_2, col = "red", pch = 16)
+legend(
+  "topleft",
+  legend = c("Growing vectors", "Conservative pre-allocation"),
+  col = 1:2,
+  pch = c(16,16), 
+  bty = "n")
+```
+
+## Task 4.5: Work smarter, not harder 
+
+Often using different data structures or simulation techniques is much more effective than trying to wring every last drop of efficiency from your current implementation. 
+
+_Task 4.5:_ compare this to an implementation that uses the Poisson distribution of the total event count to first simulate the number of events and then randomly allocates locations over the interval. 
+
+```{r}
+countdown::countdown(10)
+```
+
+## Solution 4.5: Function definintion
+
+<br>
+
+```{r}
+sim_hpp_conditional <- function(lambda = 0.2, t_max = 100, offset = 3){
+ 
+n_events <- rpois(n = 1, lambda = lambda * t_max)
+event_times <- runif(n = n_events, min = 0, max = t_max)
+event_marks <- offset + rexp(n = n_events, rate = 1) 
+
+data.frame(event_times, event_marks)
+}
+```
+
+We can compare runtime in a similar way, and find that this scales even more favourably than our previous approach.
+
+## Solution 4.5: Method Comparison 
+
+```{r}
+#| echo: true
+#| eval: true
+run_times_3 <- rep(NA, length(t_max_values))
+
+for (run in seq_along(t_max_values)) {
+  
+  set.seed(1234)
+  
+  tic(quiet = TRUE)
+  sim_3 <- sim_hpp_conditional(t_max = t_max_values[run])
+  timer_3 <- toc(quiet = TRUE)
+  
+  #print(paste("Completed run with t_max = ", t_max_values[run]))
+  
+  run_times_3[run] <- timer_3$toc - timer_3$tic
+}
+```
+
+## Solution 4.5: Method Comparison Plot
+
+```{r}
+plot(
+  x = t_max_values,
+  y = run_times_2,
+  xlab = "t_max", 
+  ylab = "runtime (seconds)",
+  col = "red", 
+  pch = 16,
+  ylim = c(0,0.1))
+points(x = t_max_values, y = run_times_1, col = "black", pch = 16)
+points(x = t_max_values, y = run_times_3, col = "purple",pch = 16)
+lines(x = t_max_values, y = run_times_1, col = "black")
+lines(x = t_max_values, y = run_times_2, col = "red")
+lines(x = t_max_values, y = run_times_3, col = "purple")
+legend(
+  "topright",
+  legend = c("Growing vectors", 
+             "Conservative pre-allocation", 
+             "Conditional simulation"),
+  col = c("black", "red", "purple"),
+  pch = c(16, 16, 16), 
+  bty = "n")
+```
+
+## Solution 4.5: 
+
+_Note:_ It is no longer possible to ensure that the same number of points are generated in each iteration, because we are not generating random variates in the same order. We might want to further investigate whether this improvement is stable across many realisations.
+
+<br>
+
+_Question:_ What is going on with $t_{\text{max}} = 5000$?
+
+
+## Summary {.smaller}
+
+<br>
+
+1. Profiling is a useful tool for identifying code bottlenecks that become large problems in production.
+
+2. Tips
+
+  - Avoid growing objects
+  - Built in functions come pre-optimised
+  - Vectorisation is (usually) your friend
+  - Preallocate memory where possible
+  - Paralellelisation and interfacing are a last resort.
+
+3. Often you can work smarter with better algorithms or data structures (but sometimes you just have to grin and bear it.)
+
+
+# Bonus discussion
+
+## What is stochastic gradient descent and how does it link to the issues we have been studying this week?
+
+<br>
+
+- Reproducibility
+- Explainability
+- Scalability
+
+```{r}
+countdown::countdown(6)
+```
