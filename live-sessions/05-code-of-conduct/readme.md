@@ -62,7 +62,7 @@ Questions to answer in groups:
 - How effectively does the document achieve its goal?
 - What would you change or do differently?
 
-Use this sheet to make notes during discussions. 
+Use `assets/professional-guidelines-sheet.pdf` to make notes during discussions. 
 
 ### Thought experiments / case studies 
 
@@ -72,9 +72,9 @@ Use this sheet to make notes during discussions.
 
 ### Optional: K-anonymisation walk-through 
 
-First demonstrate difference between k-anonymising with respect to a single outcome or a table as a whole. Emphasise $k$ as the size of the smallest equivalence class. 
+First demonstrate difference between $k$-anonymising with respect to a single outcome or a table as a whole. Emphasise $k$ as the size of the smallest equivalence class. 
 
-ChatGPT failed to generate k-anonymised data. Can you fix it to be 3-anonymous? 
+ChatGPT failed to generate $k$-anonymised data. Can you fix it to be 3-anonymous? 
 
 Lead group in discussion on various approaches: 
 
@@ -83,3 +83,5 @@ Lead group in discussion on various approaches:
 - problems with continuous variables, 
 - adapting methods to suit how the data will be used,
 - only being able to publish one version.
+
+Supporting file: `assets/k-anonymity-examples.xlsx`
