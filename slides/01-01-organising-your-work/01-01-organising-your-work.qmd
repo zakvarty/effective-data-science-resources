@@ -1,0 +1,350 @@
+---
+title: "Organising Your Work"
+subtitle: "Data Science Workflows"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: ../assets/eds-slides-theme.scss #(default / dark / simple)
+    logo: ../assets/EDS-logo.jpg
+    bibliography: ../assets/refs.bib
+    footer: "Effective Data Science: Workflows - Organising Your Work - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html to web)
+    chalkboard: false # (conflicts with self-contained)
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: true
+---
+
+
+## Week 1: What are we trying to do? 
+
+- Data science is a _collaborative discipline_ 
+
+- Be a good collaborator, to others and to your future self 
+
+- This week will show one framework to help you with that task 
+
+- Like flossing not difficult but requires discipline 
+
+- We will take an opinionated and R focused approach, ideas transfer to other settings.
+
+
+# One Project = One Directory {.center .center-x}
+
+----
+
+:::: columns
+
+:::{.column width="50%"}
+<br>
+
+ - Sounds easy, but in practice it is not.
+
+<br>
+
+ - Requires prospective project scoping.
+
+<br>
+
+- Entropy is ever increasing.
+:::
+
+:::{.column width="50%"}
+<br>
+<br>
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-1.png' height='400px'/>
+</center>
+:::
+
+::::
+
+
+## Properties of a well organised project
+
+<br>
+
+Ideally, we would like to organise our projects so that they are:
+
+<br>
+
+::::{.incremental}
+:::{.fade-in-then-semi-out}
+- Portable
+- Version control friendly
+- Reproducible
+- Integrated Development Environment friendly
+:::
+::::
+
+## Portability
+
+Is your work all in one place or scattered?
+
+Can it be moved to a new location without breaking?
+
+What do we mean by a new location, exactly? 
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-2.png' height='500px'/>
+</center>
+
+
+## Version Control Friendly 
+
+<br>
+
+<center>
+<img src='images/final_version_meme.jpg' height='550px'/>
+</center>
+
+## Reproducible 
+
+<br>
+<br>
+
+> A study is <em>reproducible</em> if <u>you</u> can take <u>the original data and the computer code</u> used to analyze the data and <u>recreate all of the numerical findings</u> from the study.
+> <br><br>
+>
+> @broman2017recommendations "Recommendations to Funding Agencies for Supporting Reproducible Research"
+
+
+
+
+
+## Integrated Development Environment Friendly 
+
+- Possible to code and manage projects entirely in notepad or at the command line.
+
+- Puts a lot of strain on you, both your fingers and your brain 
+
+- Integrated development environments such as RStudio, PyCharm and VisualStudio aim to reduce this burden 
+
+  - Autocomplete / shortcodes
+  - Environment panes
+  - Templating
+
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-3.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-4.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-5.png' height='850px'/>
+</center>
+
+---
+
+## Inside the README 
+
+- Name
+- Project Status
+- Description
+- Installation
+- Usage / Examples
+- Support 
+- Contributing
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-6.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-7.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-8.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-9.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-10.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-11.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-12.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-13.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-14.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-15.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-16.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-17.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-18.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-19.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-20.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-21.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-22.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-23.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-24.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-25.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-26.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-27.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-28.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-29.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-30.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-31.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-32.png' height='850px'/>
+</center>
+
+---
+
+<center>
+<img src='images/directory-structure-drawings/directory-structure-drawing-33.png' height='850px'/>
+</center>
+
+
+
+## Summary 
+
+<br> 
+
+- Introduced a standardised project structure;
+
+<br>
+
+- Good starting point for most data science projects;
+
+<br>
+
+- Exceptions are __apps__ and __packages__.
+
+
+
+## References {visibility="uncounted"}
+
