@@ -3,3 +3,5 @@
 
 *.mp4
 live-sessions/04-profiling/worksheet/*
+
+slides/.Rproj.user
