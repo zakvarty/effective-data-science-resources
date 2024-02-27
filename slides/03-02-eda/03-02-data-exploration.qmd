@@ -1,0 +1,362 @@
+---
+title: "Exploratory Data Analysis "
+subtitle: "Data Exploration and Visualisation"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: ../assets/eds-slides-theme.scss #(default / dark / simple)
+    logo: ../assets/EDS-logo.jpg
+    bibliography: ../assets/refs.bib
+    footer: "Effective Data Science: EDAV - Exploration - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html to web)
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: false
+---
+
+## Outline 
+
+1. What is Exploratory Data Analysis?
+
+2. What is _not_ Exploratory Data Analysis? 
+
+3. Issues around Exploratory Data Analysis.
+
+:::{.notes}
+To begin the video, let's get an idea of what I'll be talking about.
+
+I'll start by defining exactly what I mean when I refer to an exploratory analysis of a data set. In addition to giving a definition, we'll discuss the purpose of an EDA and how this changes according to the intended reader or audience.
+
+I'll then move on to describe a few things which are important parts of a data science project, but that I do not believe belong in an EDA. 
+
+Finally, we will cover some of the issues that arise during or because of an exploratory analysis.
+:::
+
+# What is an Exploratory Data Analysis? 
+
+:::{.notes}
+Let's start of by defining exactly what I mean when I refer to an exploratory analysis of a data set. 
+
+We'll look at three different perspectives on this. The purpose for you as a data scientist, for the broader team working on the project and for the project iteself. 
+:::
+
+## EDA as a way to know your data 
+
+> Exploratory Data Analysis: quick and simple exerpts, summaries and plots to better understand a data set.
+
+- Iterative, not put into production
+
+- EDA notebooks can be helpful 
+
+- Document and share what is often an ad-hoc process 
+
+- Balance between reproducibility and time cose 
+
+:::{.notes}
+Let's first focus on an exploratory data analysis from our own point of view, as data scientists. 
+
+Exploratory data analysis (or EDA) is a process of examining a data set to understand its overall structure, contents, and the relationships between the variables it contains. EDA is an iterative process that's often done before building a model or making other data-driven decisions within a data science project.
+
+One key aspect of EDA is generating quick and simple summaries and plots of the data. These plots and summary statistics can help to quickly understand the distribution of and relationships between the recorded variables. Additionally, during an exploratory analysis will familiarise yourself with the structure of the data you're working with and how that data was collected.
+
+Since EDA is an initial and iterative process, it's rare that any compnent of the analysis will be put into production. Instead, the goal is to get a general understanding of the data that can inform the next steps of the analysis.
+
+In terms of workflow, this means that using one or more notebooks is often an effective way of organising your work during an exploratory analysis. This allows for rapid iteration and experimentation, while also providing a level of reproducibility and documentation. Since notebooks allow you to combine code, plots, tables and text in a single document, this makes it easy to share your initial findings with stakeholders and project managers.
+:::
+
+## EDA as a **conversation starter** 
+
+- An effective EDA sets a precedent for open communication with the stakeholder and project manager. 
+
+  - Establish rapport and trust and buy-in early in the project;  
+  - _Stakeholder:_ subject-specific knowledge and data collection expertise;
+  - _Manager:_ prioritise projects for best __business__ outcome.
+
+:::{.notes}
+We've seen the benefits of an EDA for you as a data scientist, but this isn't the only perspective. 
+
+One key benefit of an EDA is that it can kickstart your communication with subject matter experts and project managers. You can build raport and trust early in a project's life cycle by sharing your preliminary findings with these stakeholders . This can lead to a deeper understanding of both the available data and the problem being addressed for everyone involved. If done well, it also starts to build trust in your work before you even begin the modelling stage of a project.
+
+<!-- Communicating with specialists -->
+Sharing an exploratory analysis will inevitably require a time investment. The graphics, tables, and summaries you produce need to be presented to a higher standard and explained in a way that is clear to a non-specialist. However, this time investment will often pay dividends because of the additional contextual knowledge that the domain-expert can provide. They have a deep understanding of the business or technical domain surrounding the problem. This can provide important insights that aren't in the data itself, but which are vital to the project's success.
+
+As an example, these stakeholder conversations often reveal important features in the data generating or measurement process that should be accounted for when modelling. These details are usually left out of the data documentation because they would be immediately obvious to any specialist in that field. 
+
+<!-- Communicating with project manager -->
+An EDA can sometimes allow us to identify cases where the strength of signal within the available data is clearly insufficient to answer the question of interest. By clearly communicating this to the project manager, the project can be postponed while different, better quality or simply more data are collected. It's important to note that this data collection is not trivial and can have a high cost in terms of both time and capital. It might be that collecting the data needed to answer a question will cost more than we're likely to gain from knowing that answer. Whether the project is postponed or cancelled, this constitutes a successful outcome for the project, the aim is to to produce insight or profit - not to fit models for their own sake.
+:::
+
+## EDA as project scoping 
+
+> EDA is an initial assessment of whether the available data measure the correct values, in sufficient quality and quantity, to answer a particular question. 
+
+This requires: 
+
+  - A well defined question or line of investigation 
+  - A record of data collection methods and the interpretation of each variable (data card)
+  - Documentation on the structure, precision, completeness and quantity of data available. 
+
+:::{.notes}
+A third view on EDA is as an initial assessment of whether the available data measure the correct values, with sufficient quality and quantity, to answer a particular question. In order for EDA to be successful, it's important to take a few key steps.
+
+First, it's important to formulate a specific question of interest or line of investigation and agree on it with the stakeholder. By having a clear question in mind, it will be easier to focus the analysis and identify whether the data at hand can answer it.
+
+Next, it's important to make a record (if one doesn't already exist) of how the data were collected, by whom it was collected, what each recorded variable represents and the units in which they are recorded. This meta-data is often known as a data sheet. Having this information in written form is crucial when adding a new collaboartor to a project, so that they can understanding the data generating and measurement processes, and are aware of the quality and accuracy of the recorded values. 
+:::
+
+## EDA as an investigation 
+
+- measurement noise or misclassification
+- values and dependence between measured variables 
+- missing values and their structure
+- signal strength and data size: simplest best and worst case 
+
+:::{.notes}
+In addition, it's essential to investigate and document the structure, precision, completeness and quantity of data available. This includes assessing the degree of measurement noise or misclassification in the data, looking for clear linear or non-linear dependencies between any of the variables, and identifying if any data are missing or if there's any structure to this missingness. Other data features to be aware of are the presence of any censoring or whether some values tend to be missing together.
+
+Furthermore, a more advanced EDA might include a simulation study to estimate the amount of data needed to detect the smallest meaningful effect. This is more in-depth than a typical EDA but if you suspect that the signals within your data are weak relative to measurement noise, can help to demonstrate the limitations of the current line of enquiry with the information that is currently available.
+:::
+
+# What is EDA not? 
+
+## What is not Exploratory Data Analysis?
+
+::::{.columns}
+:::{.column width="45%"}
+<br>
+
+- EDA is not modelling.
+
+- EDA is not IDA. 
+
+- EDA is not assumption free. 
+
+- EDA is not prescriptive. 
+
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="50%"}
+```{r}
+library(tidyverse)
+library(ismev)
+data("dowjones", package = "ismev") 
+
+dowjones %>% 
+  mutate(index_change = Index - lag(Index)) %>% 
+  filter(!is.na(index_change)) %>% 
+  ggplot(aes(x = Date, y = index_change)) + 
+  geom_point(col = rgb(0,0,0,0.2), size = 2) + 
+  geom_smooth(col = "darkorange", lwd = 1.5) +
+  geom_vline(xintercept = as.Date("1998-06-01")) +
+  ggtitle("Daily change of in Dow Jones Index", "with smoothed estimate of mean change") +
+  ylab("") +
+  theme_minimal() + 
+  theme(
+    axis.text = element_text(size = 20),
+    axis.title = element_text(size = 18, face = "bold",  hjust = 0.98, vjust = 2),
+    plot.title = element_text(size = 30, hjust = 0.02),
+    plot.subtitle = element_text(size = 24, hjust = 0.02)
+  )
+```
+  
+---------
+  
+```{r}
+knitr::kable(
+dowjones %>% 
+  mutate(index_change = Index - lag(Index)) %>%
+  mutate(after_june_98 = Date > as.Date("1998-06-01")) %>%
+  group_by(after_june_98) %>% 
+  summarise(
+    mean = mean(index_change, na.rm = TRUE),
+    sd = sd(index_change, na.rm = TRUE))
+)
+```
+:::
+::::
+
+:::{.notes}
+It's important to understand that an exploratory data analysis is not the same thing as modelling. In particular is it the constuction of your baseline model, which is sometimes called initial data analysis.
+
+Though it might inform the choice of baseline model, EDA is usually not model based. Simple plots and summaries are used to identify patterns in the data that inform how you approach the rest of the project. Some degree of statistical rigour can be added through the use of non-parametric techniques; methods like rolling averages, smoothing or partitioning can to help identify trends or patterns while making minimal assumptions about the data generating process.
+
+Though the assumptions in an EDA are often minimal it can help to make them explicit. For example, in this plot a moving averages is shown with a confidence band, but the construction of this band makes the implicit assumption that, at least locally, our observations have the same distribution and so are exchangeable. 
+
+Finally, EDA is not a prescriptive process. While I have given a lot of suggestions on what you might usually want to consider, there is no correct way to go about an EDA because it is so heavily dependent on the particular dataset, its interpretation and the task you want to achieve with it. This is one of the parts of data science that make it a craft that you hone with experience, rather than an algorithmic process. When you work in a particular area for a long time you develop a knowledge for common data quirks in that area, which may or may not translate to other applications.
+:::
+
+
+# Exploratory Data Analysis Issues
+
+:::{.notes}
+Now that we have a better idea of what is and what is not EDA, let's talk about the issue that an EDA tries to resolve and the other issues that it generates
+:::
+
+## Too many choices: forking paths 
+
+::::{.columns}
+:::{.column width="45%"}
+
+- Data Science projects present a sequence of decisions.
+- Too many options, difficult to decide __a priori__.
+- EDA should help with this.
+
+_Example:_ selecting null model.
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="45%"}
+<br>
+![Image credit: Natasha Ceridwen de Chroustchoff](images/forking-paths.jpg)
+:::
+::::
+
+:::{.notes}
+In any data science project you have a sequence of very many decisions that you must make, each with many potential options and is difficult to decide upon _a priori_.  
+
+Focusing in on only one small part of the process, we might consider picking a null or baseline model, which we will then try and improve on. Should that null model make constant predictions, incorporate a simple linear trend or is something more flexible obviously needed? Do you have the option to try all of these or are you working under time constraints? Are there contextual clues that rule some of these null models out on contextual grounds? 
+
+An EDA lets you narrow down your options by looking at your data and decide on reasonable modelling approaches.  
+:::
+
+## Data Leakage 
+
+::::{.columns}
+:::{.column width="45%"}
+- Using information you wouldn't have access to fit a model or construct a prior.
+
+- This "peeking" is often subtle or indirect making it hard to specify. 
+
+- Train / test split _or_ using EDA to select question / model of interest.
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="45%"}
+![](images/supervise_learning_schematic.png)
+:::
+::::
+
+:::{.notes}
+The problem that sneaks in here is data leakage. Formally where training data is included in test set, but this happens informally too. Usually this is because you've seen the data you're trying to model or predict and then selected your modelling approach based on that information.  
+
+Frequentest statistical methods for estimation and testing assume no suck "peeking" has occurred. By using these methods without acknowledging that we have already observed our data will artificially inflate the significance of our findings. For example, we might be testing a linear trend vs constant prediction, but this test was only performed because we had already having examined at the data and noticed what might be a trend. 
+
+Similar issues arise in Bayesian approaches when doing eliciting prior distributions. One nice thing that we can do here is to simulating data from the prior predictive distribution and check that an expert agrees they seem reasonable. However, if the expert is also the person who collected the data we will be modelling it is very difficult for them to ignore what they have seen, leading to similar leakage problems. 
+:::
+
+## Solutions 
+
+::::{.columns}
+:::{.column width="45%"}
+
+- Corrections to testing estimation procedures:
+  - *Medical Stats* - multiple testing;
+  - *Extremes* - flood defences;
+  - *Changepoints* - time of dislocation.
+  
+- Avoided by preregistration. 
+
+- Humility and follow-up required in data science.
+
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="45%"}
+```{r}
+date <- seq.Date(from = as.Date("2018-03-01"), to = as.Date("2022-05-03"), by = "day")
+surge_height <- rnorm(n = 1525) + c(rep(-3, 1524), 3)
+
+surface_height <- rnorm(n = 1525) + rep(x = c(-5,-3), times = c(1234, 1525 - 1234))
+
+
+waves <- tibble::tibble(date = date, surge_height = surge_height, surface_height)
+
+waves %>% 
+  mutate(is_extreme = surge_height > 1) %>%
+  ggplot(aes(x = date, y = surge_height)) +
+  geom_point(aes(color = is_extreme), show.legend = FALSE) + 
+  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red")) +
+  ylab("Wave surge height (m)") +
+  theme_minimal() +
+    theme(
+    axis.text = element_text(size = 20),
+    axis.title = element_text(size = 18, face = "bold",  hjust = 0.98, vjust = 2),
+    plot.title = element_text(size = 30, hjust = 0.02),
+    plot.subtitle = element_text(size = 24, hjust = 0.02)
+  )
+
+waves %>% 
+  ggplot(aes(x = date, y = surface_height)) +
+  geom_point() + 
+  geom_vline(xintercept = as.Date("2021-07-17"), colour = "red") +
+  ylab("Sea surface height (m)") +
+  theme_minimal() +
+    theme(
+    axis.text = element_text(size = 20),
+    axis.title = element_text(size = 18, face = "bold",  hjust = 0.98, vjust = 2),
+    plot.title = element_text(size = 30, hjust = 0.02),
+    plot.subtitle = element_text(size = 24, hjust = 0.02)
+  )
+```
+:::
+::::
+
+:::{.notes}
+There are various methods or corrections that we can apply during our testing and estimation procedures to ensure that our error rates or confidence intervals account for our previous "peeking" during EDA.
+
+Examples of these corrections have been developed across many fields of statistics. In medical statistics we have approaches like the Bonferroni correction, to account for carrying out multiple hypothesis tests. In the changepoint literature there are techniques for estimating a change location given that a change has been detected somewhere in a time series. While in the extreme value literature there are methods to estimating the required height of flood defences, given that the analysis was triggered by the current defences being compromised.
+
+
+All of these corrections require us to make assumptions about the nature of the peeking. They are either very sepecific about the process that has occurred, or else are very pessimistic about how much information has been leaked. Developing such corrections to account for EDA isn't really possible, given its adaptive and non-prescriptive nature. 
+
+In addition to being either highly specific or pessimistic, these corrections can also be hard to derive and complicated to implement. This is why in settings where the power of tests or level of estimation is critically important, the entire analysis is pre-registered. In clinical trials, for example, every step of the analysis is specified before any data are collected. In data science this rigorous approach is rarely taken. As statistically trained data scientists it is important for us to remain humble about our potential findings and to suggest follow up studies to confirm the presence of any relationships we do find.
+:::
+
+
+## Learning More {.smaller}
+
+### Recap
+
+- EDA is an important step in the life-cycle of a data science project.
+
+- An EDA can guide our project but risks data leakage issues.
+
+
+### Learning more
+- EDA not often available publicly or written about in detail.
+
+- Learn from your own experience and explore lots of what other people do
+
+- Some starting points:
+  - [EDA check list](https://bookdown.org/rdpeng/exdata/exploratory-data-analysis-checklist.html#follow-up-questions) by Roger Peng
+  - [Exploratory Data Analysis for Complex Models](http://www.stat.columbia.edu/~gelman/research/published/p755.pdf) by Andrew Gelman
+
+
+:::{.notes}
+So, let's wrap up this video here. 
+
+We've acknowledged that exploratory analyses are an important part of the data science workflow, not only for us as data scientists but also for the other people who are involved with our projects. 
+
+We've also seen that an exploratory analysis can help to guide the progression of our projects, but that in doing so we must take care to prevent and acknowledge the risk of data leakage. 
+
+If you want to explore this topic further, it can be quite challenging. This is because examples of good, exploratory data analyses can be difficult to come by. This is because they are not often made publicly available in the same way that papers and technical reports are. Additionally, they are often kept out of public repositories because they are not as "polished" as the rest of the project. Personally, I think this is a shame and the culture on this is slowly changing. 
+
+For now, your best approach to learning about what makes a good exploratory analysis is to do lots of your own and to talk to you colleagues about their approaches. 
+
+There are lots of list-articles out there claiming to give you a comprehensive list of steps for any exploratory analysis. These can be good for inspiration, but I strongly suggest you don't treat these as gospel. 
+
+Where else can you turn if you want to learn more?
+
+Despite the name of the chapter, Roger Peng's EDA check-list gives an excellent worked example of an exploratory analysis in R. The the discussion article "Exploratory Data Analysis for Complex Models", Andrew Gelman makes a more abstract discussion of both exploratory analyses, which happen before modelling and confirmatory analyses, which happen afterwards. 
+
+
+Thank you very much from your attention
+
+:::
+
