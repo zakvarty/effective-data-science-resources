@@ -1,0 +1,779 @@
+---
+title: "Effective Data Wrangling"
+subtitle: "Data Exploration and Visualisation"
+author: Dr Zak Varty
+date: ""
+editor: source
+format:
+  revealjs:
+    theme: ../assets/eds-slides-theme.scss #(default / dark / simple)
+    logo: ../assets/EDS-logo.jpg
+    bibliography: ../assets/refs.bib
+    footer: "Effective Data Science: EDAV - Wrangling - Zak Varty"
+    menu: true
+    slide-number: true
+    show-slide-number: all # (all / print / speaker)
+    self-contained: true # (set to true before publishing html to web)
+    width: 1600 # default is 1050
+    height: 900 # default is 850
+    incremental: false
+---
+
+## What is Data Wrangling? 
+
+::::{.columns}
+:::{.column width="40%"}
+
+<br>
+
+- You have raw data, now what? 
+
+- Subset, summarise, create, merge...
+
+- wrangling = manipulation = munging
+
+- Fly-by tour, focusing on common operations
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="55%"}
+![Source: Openscapes blog by J Lowndes and A Horst.](images/horst-wrangle-monsters.jpg)
+:::
+::::
+
+:::{.notes}
+Okay, so you've got some data. Great start! 
+
+You might have had it handed to you by a collaborator, [requested it via an API](https://www.zakvarty.com/blog/2022-12-14-apis-and-httr/) or [scraped it from the raw html of a webpage](https://www.zakvarty.com/blog/2022-12-01-rvest/). In the worst case scenario, you're an _actual_ scientist (not just a _data_ one) and you spent the last several months of your life painstakingly measuring flower petals or car parts. Now we really want to do something useful with that data. 
+
+We've seen already how you can load the data into R and pivot between wider and longer formats, but that probably isn't enough to satisfy your curiosity. You want to be able to view your data, manipulate and subset it, create new variables from existing ones and cross-reference your dataset with others. All of these are things possible in R and are known under various collective names including data manipulation, data munging and data wrangling. 
+
+I've decided to use the term data wrangling here. That's because data manipulation sounds boring a.f. and data munging is both unpleasant to say and makes me imagine we are squelching through some sort of information swamp. 
+
+In what follows I'll give a fly-by tour of tools for data wrangling in R, showing some examples along the way. I'll focus on some of the most common and useful operations and link out to some more extensive guides for wrangling your data in R, that you can refer back to as you need them. 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## Example Data Sets 
+
+::::{.columns}
+:::{.column width="45%"}
+![](images/palmer-penguins.png){width="60%"}
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="50%"}
+<br> <br>
+```{r echo=TRUE}
+library(palmerpenguins)
+pengins <- palmerpenguins::penguins
+cars <- datasets::mtcars
+```
+:::
+::::
+
+:::{.notes}
+To demonstrate some wrangling skills we'll use some example datasets. These are the `penguins` data set from `{palmerpenguins}` and the `mtcars` data set, which comes as part of any R installation.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+# Viewing Your Data
+
+:::{.notes}
+The first thing that you might like to do with your data is have a look at it. There's several tools to do that, each with a slightly different usecase.
+:::
+<!-- ----------------------------------------------------------------------- -->
+
+## `View()` 
+
+```{r echo=TRUE, eval=FALSE}
+View(penguins)
+```
+
+![](images/view-penguins-screenshot.png)
+
+
+:::{.notes}
+The `View()` function can be used to create a spreadsheet-like view of your data. In RStudio this will open as a new tab. 
+
+`View()` will work for any "matrix-like" R object, such as a tibble, data frame, vector or matrix. Note the capital letter - the function is called `View()`, not `view()`.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## `head()`
+
+<br>
+
+```{r echo=TRUE}
+head(x = pengins, n = 7)
+```
+
+:::{.notes}
+For large data sets, you might not want (or be able to) view it all at once. You can then use `head()` to view the first few rows. The integer argument `n` specifies the number of rows you would like to return. 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## `str()`
+
+<br>
+
+```{r echo=TRUE}
+str(penguins)
+```
+
+:::{.notes}
+An alternative way to view the a large data set, or one with a complicated format is to examine its structure with `str()`. This is a useful way to inspect the structure of list-like objects, particularly when they've got a nested structure.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## `names()` {.smaller}
+
+```{r, echo=TRUE}
+names(penguins)
+```
+
+<br>
+
+```{r, echo=TRUE}
+colnames(cars)
+```
+
+```{r, echo=TRUE}
+rownames(cars)
+```
+
+:::{.notes}
+Finally, if you just want to access the variable names you can do so with the `names()` function from base R.  
+
+Similarly, you can explicitly access the row and column names of a data frame or tibble using `colnames()` or `rownames()`.
+
+In the `cars` data, the car model are stored as the row names. This doesn't really jive with our idea of tidy data - we'll see how to fix that shortly. 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+# Renaming Variables
+
+:::{.notes}
+After having looked at your raw data, you might have to deal with some variable names that are uninformative or that contain characters that don't play nicely with computation, like spaces for example. 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## `colnames()`
+
+<br>
+
+```{r, echo=TRUE}
+cars_renamed <- cars 
+colnames(cars_renamed)[1] <- "miles_per_gallon"
+colnames(cars_renamed)
+```
+
+:::{.notes}
+The function `colnames()` can be used to set, as well as to retrieve, column names. 
+Here we are renaming the first column from `mpg` to the more informative `miles_per_gallon`. I'd like to use the original cars data frame again later, so I'm making these modifications to a copy of the data frame called `cars_renamed`.  
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## `dplyr::rename()`
+
+```{r, echo = TRUE, warning=FALSE}
+library(dplyr)
+cars_renamed <- rename(.data = cars_renamed, cylinders = cyl)
+colnames(cars_renamed)
+``` 
+
+. . . 
+
+<br>
+ 
+```{r, echo=TRUE}
+cars_renamed <- cars_renamed %>% 
+  rename(displacement = disp) %>% 
+  rename(horse_power = hp) %>% 
+  rename(rear_axel_ratio = drat)
+
+colnames(cars_renamed)
+```
+
+:::{.notes}
+We can also use functions from `{dplyr}` to rename columns. Let's alter the second column name.
+
+...
+
+If we are making alterations to lots of column names, these can be strung together using pipe operators, without having to save any intermediate objects.
+
+When using the dplyr function you have to remember the format `new_name = old_name`. This matches the format used to create a data frame or tibble, but it's the opposite order to the python function with the same name, and this often catches people out. 
+
+In the section coming up on creating new variables, we'll see an alternative way of doing this by copying the column and then deleting the original. 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+# Subsetting 
+
+:::{.notes}
+Of course, you won't always be interested in all of your data. Sometimes you'll need to access only certain rows, columns or combinations of those.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## Subsetting with Base R (1)
+
+Subsetting by index 
+
+```{r echo=TRUE, eval=FALSE}
+# First row
+penguins[1, ]
+
+# First Column 
+penguins[ , 1]
+
+# Rows 2-3 of columns 1, 2 and 4
+penguins[2:3, c(1, 2, 4)]
+```
+
+Drop rows or columns with negative indices
+
+```{r, echo=TRUE, eval=FALSE}
+# Drop all but first row
+penguins[-(2:344), ]
+
+# Drop all but first column 
+penguins[ , -(2:8)]
+```
+
+:::{.notes}
+In base R you can extract rows, columns and combinations thereof using index notation. You specify the rows and columns that you would like to retain from the data frame. 
+
+Conversely, you can use negative integers to specify columns or rows that you would like to drop from the data frame. 
+:::
+<!-- ----------------------------------------------------------------------- -->
+
+## Subsetting with Base R (2)
+
+Subset using logical vector
+
+```{r, echo=TRUE, eval=FALSE}
+is_bill_long <- penguins$bill_length_mm > 70
+pengiuns[is_bill_long, ]
+```
+ 
+<br>
+
+Subset using names (note different objects)
+
+```{r, echo=TRUE, eval=FALSE}
+pengins[ , "species"]   # tibble
+penguins$species       # vector 
+```
+
+:::{.notes}
+You can also subset using a logical vector, here we see an example of keeping only penguins with bills that are more than 70mm long. 
+
+Finally, you can subset using row or column names. When using column names, these may be specified using either bracket or dollar notation. One thing to be aware of here is that the two methods will return different object types. 
+
+Since penguins is a tibble, the bracketed example will return another tibble. On the other hand, the dollar notation will _extract_ the species column and return it as a vector.
+::: 
+
+<!-- ----------------------------------------------------------------------- -->
+ 
+## Subsetting with `{dplyr}` (1) {.smaller}
+
+```{r, echo=TRUE}
+penguins %>% 
+  select(species, island, body_mass_g) %>% 
+  print(n = 4)
+```
+
+<br>
+
+```{r, echo=TRUE}
+penguins %>% 
+  select(species, island, body_mass_g) %>% 
+  filter(body_mass_g > 6000)
+```
+
+:::{.notes}
+`{dplyr}` has two functions for subsetting, `filter()` subsets by rows and `select()` subsets by column. 
+
+In both functions you list what you would like to retain. Filter and select calls can be piped together to subset based on row and column values. 
+::: 
+
+<!-- ----------------------------------------------------------------------- -->
+
+## Subsetting with `{dplyr}` (2) {.smaller}
+
+```{r}
+#| echo: true
+#| code-line-numbers: "3"
+penguins %>% 
+  select(species, island, body_mass_g) %>% 
+  filter(!(body_mass_g > 6000)) %>% 
+  print(n = 4)
+``` 
+<br>
+
+```{r}
+#| echo: true
+#| code-line-numbers: "3-4"
+penguins %>% 
+  select(species, island, body_mass_g) %>% 
+  filter(!(body_mass_g > 6000)) %>% 
+  select(!c(species, island)) %>% 
+  print(n = 4)
+```
+
+:::{.notes}
+Subsetting rows can be inverted by negating the `filter()` statement and dropping columns can done by selecting all columns except the one(s) you want to drop.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+# Creating new variables
+
+:::{.notes}
+The data that you are probived with orignally are not always sufficinent, you will often need to transform or combine them. Again, there are different approaches you can take to creating new variables, depending on whether you use base R or dplyr functions.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## New Variables with Base R 
+
+
+```{r, echo=TRUE}
+# add weight column
+cars_renamed$weight <- cars_renamed$wt
+```
+
+<br>
+
+. . . 
+
+
+```{r, echo=TRUE}
+# remove wt column
+cars_renamed <- cars_renamed[ ,-which(names(cars_renamed) == "wt")]
+head(cars_renamed, n = 3)
+```
+
+:::{.notes}
+We can create new variables in base R by assigning a vector of the correct length to a new column name.
+
+...
+
+If we then drop the original column from the data frame, this gives us an alternative way of renaming columns. 
+
+One thing to be aware of is that this operation does not preserve column ordering. 
+
+Generally speaking, code that relies on columns being in a specific order is fragile - it breaks easily. If possible, you should try to write your code in another way that's robust to column reordering. I've done that here when removing the `wt` column by looking up the column index as part of my code, rather than assuming it will always be the fourth column.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## New Variables with `dplyr::mutate()`
+
+```{r, echo=TRUE}
+cars_renamed <- cars_renamed %>% 
+  mutate(weight_kg = weight * 1000)
+
+cars_renamed %>% 
+  select(weight, weight_kg) %>% 
+  head(n = 3)
+```
+
+<br>
+
+. . . 
+
+```{r, echo=TRUE}
+cars_renamed <- cars_renamed %>% 
+  mutate(cylinder_adjusted_mpg = miles_per_gallon / cylinders)
+```
+
+:::{.notes}
+The function from `{dplyr}` to create new columns is `mutate()`. Here we're creating another column that has the car's weight in kilogrammes rather than in tonnes.
+
+...
+
+You can also create new columns that combine, or are functions of, multiple other columns.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## Row names / id to column 
+
+```{r, echo=TRUE}
+cars %>% 
+  tibble::rownames_to_column(var = "model") %>% 
+  head(n = 3)
+``` 
+
+<br>
+
+```{r, echo=TRUE}
+cars %>% 
+  tibble::rowid_to_column(var = "row_id") %>% 
+  head(n = 3)
+```
+
+:::{.notes}
+One useful example of adding an additional row to a data frame is to convert its row names to a column of the data fame. you could do this as we did before, first using mutate() to add a new column of rownames and then setting the rownames to be NULL. 
+
+There's a neat function called `rownames_to_column()` in `{tibble}` which will add this as the first column and remove the row names all in one step.
+
+There's also _another_ function from `{tibble}` that adds the row id of each observation as a new column. This is often useful when you're trying to order or combine tables.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+# Summaries {.smaller}
+
+```{r, echo=TRUE}
+penguins %>% 
+summarise(average_bill_length_mm = mean(bill_length_mm, na.rm = TRUE))
+```
+
+. . . 
+
+<br>
+
+```{r, echo=TRUE}
+bill_length_mm_summary <- penguins %>% 
+  summarise(
+    mean = mean(bill_length_mm, na.rm = TRUE),
+    median = median(bill_length_mm, na.rm = TRUE),
+    min = max(bill_length_mm, na.rm = TRUE),
+    q_0 = min(bill_length_mm, na.rm = TRUE),
+    q_1 = quantile(bill_length_mm, prob = 0.25, na.rm = TRUE),
+    q_2 = median(bill_length_mm, na.rm = TRUE),
+    q_3 = quantile(bill_length_mm, prob = 0.25, na.rm = TRUE),
+    q_4 = max(bill_length_mm, na.rm = TRUE))
+
+bill_length_mm_summary
+```
+
+:::{.notes}
+The `summarise()` function allows you to collapse a data frame into a single row, using a summary statistic of your choosing. 
+
+We can calculate the average bill length of all penguins in a single `summarise()` function call. Since we have missing values, we might instead want to calculate the mean of the recorded values. 
+
+... 
+
+We can also use `summarise()` to gather multiple summaries in a single data frame. 
+
+In all, this isn't overly exciting. You might, rightly, wonder why you'd want to use these `summarise()` calls when we could just use the simpler base R calls directly. 
+
+One benefit is that the summarise calls ensure consistent output. However, the main advantage comes when you want to apply these summaries to distinct subgroups of the data.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+# Grouped Operations 
+
+:::{.notes}
+The real benefit of `summarise()` comes from its combination with `group_by()`. This allows to you calculate the same summary statistics for each level of a factor with only one additional line of code. 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+## Grouped Operations {.smaller}
+
+<br>
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+penguins %>% 
+  group_by(species) %>%
+  summarise(
+    mean = mean(bill_length_mm, na.rm = TRUE),
+    median = median(bill_length_mm, na.rm = TRUE),
+    min = max(bill_length_mm, na.rm = TRUE),
+    q_0 = min(bill_length_mm, na.rm = TRUE),
+    q_1 = quantile(bill_length_mm, prob = 0.25, na.rm = TRUE),
+    q_2 = median(bill_length_mm, na.rm = TRUE),
+    q_3 = quantile(bill_length_mm, prob = 0.25, na.rm = TRUE),
+    q_4 = max(bill_length_mm, na.rm = TRUE))
+```
+
+:::{.notes}
+Here we're re-calculating the same set of summary statistics we just found for all penguins, but for each individual species. The only change we had to make was to add in a group_by line, to convert the original penguins tibble to a grouped data frame.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+## Multiple Groups {.smaller}
+
+<br>
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+penguin_summary_stats <- penguins %>% 
+  group_by(species, island) %>%
+  summarise(
+    mean = mean(bill_length_mm, na.rm = TRUE),
+    median = median(bill_length_mm, na.rm = TRUE),
+    min = max(bill_length_mm, na.rm = TRUE),
+    q_0 = min(bill_length_mm, na.rm = TRUE),
+    q_1 = quantile(bill_length_mm, prob = 0.25, na.rm = TRUE),
+    q_2 = median(bill_length_mm, na.rm = TRUE),
+    q_3 = quantile(bill_length_mm, prob = 0.25, na.rm = TRUE),
+    q_4 = max(bill_length_mm, na.rm = TRUE))
+
+penguin_summary_stats
+```
+:::{.notes}
+You can also group by multiple factors, to calculate summaries for each distinct combination of levels within your data set. Here we group the penguins by combinations of species and the island to which they belong. 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+## Ungrouping {.smaller}
+
+By default each `summarise()` will undo one level of grouping.
+
+```{r, echo=TRUE}
+class(penguin_summary_stats)
+```
+
+Use an appropriate number of calls or `ungroup()`. 
+
+```{r, echo=TRUE, warning=FALSE}
+penguin_summary_stats %>% 
+  summarise_all(mean, na.rm = TRUE)
+```
+
+```{r, echo=TRUE}
+ungroup(penguin_summary_stats)
+```
+
+:::{.notes}
+By default, each call to `summarise()` will undo one level of grouping. This means that our previous result was still grouped by species. 
+
+(We can see this by examining the structure of the returned data frame. The first line tells us that this this is an S3 object of class "grouped_df", which inherits its properties from a "tbl_df", whose properties in turn come from "tbl" and "data.frame" objects.)
+
+Since we have grouped by two variables, R expects us to use two summaries before returning a data frame (or tibble) that is not grouped. One way to satisfy this is to use apply a second summary at the species level of grouping.  
+
+However, we won't always want to do apply another summary. In that case, we can undo the grouping using `ungroup()`. Remembering to ungroup is a gotcha and cause of confusion when working with multiple-group summaries.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+## Reordering Factors (1)
+
+- Factors are stored as integers, ordering can make tables and plots confusing. 
+
+```{r, echo=TRUE}
+tshirts <- tibble::tibble(
+  id = 1:12, 
+  size = as.factor(c("L", NA, "M", "S", "XS", "M", "XXL", "L", "XS", "M", "L", "S"))
+)
+
+tshirts %>% group_by(size) %>% summarise(count = n())
+```
+
+
+
+:::{.notes}
+R stored factors as integer values, which it then maps to a set of labels. Only factor levels that appear in your data will be assigned a coded integer value and the mapping between factor levels and integers will depend on the order that the labels appear in your data.
+
+This can be annoying, particularly when your factor levels relate to properties that aren't numerical but do have an inherent ordering to them. In this example, we have data on the t-shirt size of twelve people.
+
+Annoyingly, the sizes aren't in order and extra large is not included because it is not included in the sample. This leads to awkward summary tables (and plots). 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+## Reodrdering Factors (2)
+
+- create new variable with the factor in the correct order. 
+
+```{r, echo=TRUE}
+tidy_tshirt_levels <- c("XS", "S", "M", "L", "XL", "XXL", NA)
+
+tshirts %>% 
+  mutate(size_tidy = factor(size, levels = tidy_tshirt_levels)) %>% 
+  group_by(size_tidy, .drop = FALSE ) %>% 
+  summarise(count = n())
+```
+
+:::{.notes}
+We can fix this by creating a new variable with the factors explicitly coded in the correct order. We also need to specify that we should not drop empty groups as part of `group_by()`. 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+# Be Aware!
+
+:::{.notes}
+I'll wrap up this lecture by highlighting some special data types that you should take care when handling. I'll link out to some helpful resources and packages too.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+## Be Aware: Factors {.smaller}
+
+::::{.columns}
+:::{.column width="30%"}
+<br><br><br>
+![](images/forcats.png)
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="60%"}
+<br><br>
+
+Useful `{forcats}` functions: 
+
+- `fct_reorder()`: Reordering a factor by another variable.
+- `fct_infreq()`: Reordering a factor by the frequency of values.
+- `fct_relevel()`: Changing the order of a factor by hand.
+- `fct_lump()`: Collapsing the least/most frequent values of a factor into “other”.
+
+Check out the [forcats vignette](https://forcats.tidyverse.org/articles/forcats.html) or the [factors chapter]((https://r4ds.had.co.nz/factors.html)) of R4DS. 
+:::
+::::
+
+:::{.notes}
+As we have seen a little already, categorical variables can cause issues when wrangling and presenting data in R. All of these problems are solvable using base R techniques but the `{forcats}` package provides tools for the most common of these problems. This includes functions for changing the order of factor levels or the values with which they are associated. 
+
+Some examples functions from the package include: Reordering a factor, either by the value or frequency of another variable. There are also functions for manually changing the order of a factor and for lumping together levels into an "other" category.
+
+Examples of each of these functions can be found in the [forcats vignette](https://forcats.tidyverse.org/articles/forcats.html) or the [factors chapter](https://r4ds.had.co.nz/factors.html) of R for data science. 
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+## Be Aware: Strings 
+
+::::{.columns}
+:::{.column width="60%"}
+- Working with text data is it's own skill. 
+
+- Requires some knowledge of [regular expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions).
+
+- `{stringr}` simplifies this, somewhat. 
+
+- Learn as you need it: [strings](https://r4ds.had.co.nz/strings.html#strings) section of R4DS.
+:::
+:::{.column width="5%"}
+:::
+:::{.column width="35%"}
+![](images/stringr.png)
+:::
+::::
+
+:::{.notes}
+Working with and analysing text data is a skill unto itself. However, it's useful to be able to do some basic manipulation of character strings programatically.
+
+Because R was developed as a statistical programming language, it's well suited to the computational and modelling aspects of working with text data but the base R string manipulation functions can be a bit unwieldy at times. 
+
+The `{stringr}` package aims to combat this by providing useful helper functions for a range of text management problems. Even when not analysing text data these can be useful, for example to remove prefixes on a lot of column names. 
+
+The stringr functions do assume some knowledge of regular expressions. unless you plan to work extensively with text data, I would recommend that you look up such string manipulations as you need them. The [strings](https://r4ds.had.co.nz/strings.html#strings) section of R for Data Science is a useful starting point. 
+:::
+<!-- ----------------------------------------------------------------------- -->
+
+## Be Aware: Dates and Times
+Recall ISO standard and proceed with caution
+
+$$ \text{YYYY} - \text{MM} - \text{DD}$$
+
+- How many days are there in a year / month? How many hours are there in a day?
+- How many seconds are there in a minute?
+- What calendar are you using? When does the year begin and how many months? 
+  
+`{lubridate}` makes this easier, see [dates and times](https://r4ds.had.co.nz/dates-and-times.html#dates-and-times) examples from R4DS.
+
+:::{.notes}
+Remember all the fuss we made about storing dates in the ISO standard format? That was because dates and times are complicated enough to work with before adding extra ambiguity.
+
+$$ \text{YYYY} - \text{MM} - \text{DD}$$
+Dates, times and time intervals have to reconcile two factors: the physical orbit of the Earth around the Sun and the social and geopolitical mechanisms that determine how we measure and record the passing of time. This makes the history of date and time records fascinating and can make working with this type of data complicated.
+
+Moving from larger to smaller time spans: leap years alter the number of days in a year, months are of variable length (with February's length changing from year to year). If your data are measured in a place that uses daylight saving, then one day a year will be 23 hours long and another will be 25 hours long. To make things worse, the dates and the hour at which the clocks change are not uniform across countries, which might be in distinct time zones that themselves change over time.
+
+Even at the level of minutes and seconds we aren't safe - since the Earth's orbit is gradually slowing down a leap second is added approximately every 21 months. Nor are things any better when looking at longer time scales or across cultures, where we might have to account for different calendars: months are added removed and altered over time, other calendar systems still take different approaches to measuring time and using different units and origin points. 
+
+With all of these issues you have to be very careful when working with date and time data. Functions to help you with this can be found in the `{lubridate}` package, with examples in the [dates and times](https://r4ds.had.co.nz/dates-and-times.html#dates-and-times) chapter of R for data science.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+## Be Aware: Relational Data {.incremental}
+
+::::{.columns}
+:::{.column width="50%"}
+
+- Data on the same observational units stored across two or more tables. 
+
+- [Relational data](https://r4ds.had.co.nz/relational-data.html) chapter of R4DS.
+
+
+__Inner Join__
+
+![](images/join-inner.png)
+:::
+:::{.column width="10%"}
+:::
+:::{.column width="40%"}
+
+![](images/join-left-right-full.png){width=70%}
+
+<br>
+
+:::
+::::
+
+:::{.notes}
+The final category to be alert when handling is relational data. 
+
+When the data you need are stored across two or more data frames you need to be able to cross-reference those and match up values for observational unit. This sort of data is know as relational data, and is used extensively in data science. 
+
+The variables you use to match observational units across data frames are known as _keys_. The primary key belongs to the first table and the foreign key belongs to the secondary table. There are various ways to join these data frames, depending on if you want to retain.
+
+You might want to keep only observational units that have key variables values in both data frames, this is known as an inner join.
+
+You might instead want to keep all units from the primary table but pad with NAs where there is not a corresponding foreign key in the second table. This results in an __(outer) left-join__.
+
+Conversely, you might keep all units from the second table but pad with NAs where there is not a corresponding foreign key in the primary table. This is imaginatively named an __(outer) right-join__. 
+
+In the __(outer) full join__, all observational units from either table are retained and all missing values are padded with NAs.
+
+Things get more complicated when keys do not uniquely identify observational units in one or both tables. I'd recommend you start exploring these ideas with the [relational data](https://r4ds.had.co.nz/relational-data.html) chapter of R for Data Science. 
+:::
+
+
+<!-- ----------------------------------------------------------------------- -->
+## Ubiquity of Relational Data
+
+- Relational data base management systems used across data science,
+  - More efficient and fewer privacy concerns.
+
+- SQL as a database management language 
+  - Inspiration for `{dplyr}`, translate with `{dbplyr}`
+  
+- More data base theory and efficient queries - big data or introductory SQl books. 
+
+:::{.notes}
+Working with relational data is essential to getting any data science up and running out in the wilds of reality. This is because businesses and companies don't store all of their data in a huge single csv file. For one this isn't very efficient, because most cells would be empty. Secondly, it's not a very secure approach, since you can't grant partial access to the data.  That's why information is usually stored in many data frames (more generically known as tables) within one or more databases. 
+
+These data silos are created, maintained, accessed and destroyed using a relational data base management system. These management systems use code to manage and access the stored data, just like we have seen in the dplyr commands above. You might well have heard of the SQL programming language (and its many variants), which is a popular language for data base management and is the inspiration for the dplyr package and verbs. There's another package called `dbplyr` that allows you to easily translate `{dplyr}` code into SQL queries. 
+
+If you'd like to learn more then there are many excellent introductory SQL books and courses, I'd recommend picking one that focuses on data analysis or data science unless you really want to dig into efficient storage and querying of databases.
+:::
+
+<!-- ----------------------------------------------------------------------- -->
+
+## Wrapping up 
+
+- Learned how to wrangle tabular data in R with base R and `{dplyr}`
+
+- Met the idea of relational data and `{dplyr}`'s relationship to SQL
+
+- Become aware of some tricky data types and packages that can help. 
+
+:::{.notes}
+Let's wrap the video up here, then. We've met a lot of new functionality from the dplyr package that can help us to wrangle tabular data. I also introduced the idea of relational data bases, and we saw that languages for database management like SQL were the inspiration for these dplyr verbs. 
+
+Finally, I raised some red flags on other data types that can be particularly tricky to wrangle: factors, strings and date times. These are types of data that everyone finds it difficult to work with, and so dedicated tools have been developed to make the process slightly more manageable. 
+
+You've now got the tools and resources to wrangle the most common data types. Thank you very much for your attention and I'll see you in the next video. 
+:::
